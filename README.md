@@ -1,101 +1,106 @@
-# Orbita
+# Content Forge
 
-Orbita is a personal AI-powered digital presence operating system. It helps one user turn ideas into platform-aware content, campaigns, relationship tracking, memory, analytics, and opportunity discovery across LinkedIn, X, and Reddit.
+Content Forge is a Gen AI–powered content transformation platform built for the **Smart India Hackathon**, addressing Problem Statement **26154** ("Gen AI Platform for Automated Content Transformation") for the **National Technical Research Organisation (NTRO)** under the Smart Automation theme.
 
-This MVP is built as a responsive Next.js app for Vercel. It currently runs in demo/manual mode so the product is usable before database, AI, and platform API credentials are connected.
+It takes operator-submitted source content — text, documents, articles, reports, images, videos, links, or free-form prompts — and transforms it into operator-selected output formats: **Video Package, LinkedIn Post, Twitter/X Post, Advisory, Infographic, Executive Summary, or Presentation**. The operator controls target audience, tone, language, level of detail, communication objective, and content style for each transformation.
+
+This MVP is built as a Python service, structured across multiple modules rather than a single monolithic script.
 
 ## What Works
 
-- Secure-by-default project structure with no committed secrets.
-- Responsive authenticated app shell.
-- Home command center with natural-language planning.
-- Create workspace for LinkedIn, X, and Reddit drafts.
-- Campaign dashboard.
-- Discover surface for people/topics/opportunities.
-- Lightweight network CRM.
-- Inspectable and editable memory.
-- Analytics dashboard with opportunity yield.
-- Settings with integration health and manual/assisted mode.
-- Browser-local demo persistence with export/reset controls.
-- API routes for assistant plans, content drafts, auth, and health.
-- Unit tests for core Orbita decision logic.
+- Ingestion pipeline for text, documents, articles, reports, images, and video inputs.
+- Link handling: fetches a submitted URL, reads its contents, and analyzes any embedded images before transformation.
+- Operator controls for audience, tone, language, detail level, objective, and style.
+- Output generators for LinkedIn Post, Twitter/X Post, Advisory, Executive Summary, and Infographic.
+- Video package generation with narration audio via ElevenLabs.
+- Presentation generation via a self-hosted Presenton instance (backend API only, no Presenton frontend).
+- Modular Python codebase split by concern (ingestion, transformation, output generation).
 
 ## Architecture
 
-- `src/app` contains Next.js app routes and API routes.
-- `src/components` contains product UI.
-- `src/lib` contains typed domain models, demo data, auth helpers, and Orbita logic.
-- `src/lib/orbita-engine.ts` is the current deterministic strategist/writer fallback. It is designed to sit behind an AI service abstraction later.
+- `src/ingestion/` — handles source content intake: text, document parsing, link fetching, and image analysis.
+- `src/transform/` — core Gen AI transformation logic; maps source content + operator controls to a target output type.
+- `src/outputs/` — one module per output type (video, linkedin, twitter, advisory, infographic, summary, presentation).
+- `src/outputs/video.py` — assembles video packages and calls ElevenLabs for narration audio.
+- `src/outputs/presentation.py` — calls a self-hosted Presenton backend API to generate presentation output.
+- `src/api/` — application entry points / routes exposing the transformation pipeline.
+
+*(Adjust the above paths to match your actual repo layout — update this section once the codebase structure is finalized.)*
 
 ## Local Development
 
 ```bash
-npm install
-npm run dev
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
 ```
 
-Open the local URL shown by Next.js. In local demo mode, any non-empty access code works. In production, set `ORBITA_ACCESS_CODE`.
+Copy `.env.example` to `.env` and fill in the required keys below before running the service.
+
+```bash
+python src/main.py
+```
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` for local development. Do not commit `.env.local`.
+Copy `.env.example` to `.env` for local development. Do not commit `.env`.
 
-- `ORBITA_ACCESS_CODE`: private app access code.
-- `DATABASE_URL`: managed Postgres connection string.
-- `AI_PROVIDER`: `gemini` or `openai`. Defaults to Gemini when `GEMINI_API_KEY` exists.
-- `GEMINI_API_KEY`: Gemini API key for AI generation.
-- `GEMINI_MODEL`: Gemini model. Defaults to `gemini-3.6-flash`.
-- `OPENAI_API_KEY`: optional OpenAI fallback for AI generation and reasoning.
-- `OPENAI_MODEL`: OpenAI model. Defaults to `gpt-5-mini`.
-- `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET`: future official LinkedIn integration.
-- `X_CLIENT_ID` / `X_CLIENT_SECRET`: future official X integration.
-- `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET`: future Reddit integration.
-- `VERCEL_TOKEN`: deployment automation when available.
+- `AI_PROVIDER`: Gen AI provider used for content transformation (e.g. `gemini` or `openai`).
+- `GEMINI_API_KEY` / `OPENAI_API_KEY`: API key for the selected Gen AI provider.
+- `ELEVENLABS_API_KEY`: separate API key for video narration audio generation.
+- `PRESENTON_API_URL`: base URL of the self-hosted Presenton backend used for Presentation output.
+- `PRESENTON_API_KEY`: credential for the Presenton backend API, if configured.
 
-## Database Setup
+## Input Handling
 
-The MVP runs without a database using isolated browser-local demo state. A production Postgres baseline is included at `db/migrations/001_initial_schema.sql`, covering users, profiles, platform accounts, campaigns, content items, content versions, publishing jobs, people, relationships, interactions, topics, opportunities, analytics events, analytics snapshots, memories, preferences, experiments, research sources, system metrics, and audit logs.
+Content Forge must accept and correctly process:
 
-## Deployment
+- News articles, reports, advisories, threat intelligence, policy documents, research papers, announcements, and incident reports.
+- Free-form prompts describing what the operator wants generated.
+- URLs — the system fetches the page, reads its text content, and analyzes any embedded images as part of the source material.
 
-Target platform: Vercel.
+## Output Types
 
-Required before production deployment:
-
-1. Add `ORBITA_ACCESS_CODE`.
-2. Add `DATABASE_URL` when persistent multi-session data is required.
-3. Add `GEMINI_API_KEY` or `OPENAI_API_KEY` when live AI generation is enabled.
-4. Connect GitHub repository to Vercel.
+| Output | Description |
+|---|---|
+| Video Package | Short video with narration audio (ElevenLabs) |
+| LinkedIn Post | Platform-formatted professional post |
+| Twitter/X Post | Platform-formatted short post |
+| Advisory | Structured advisory document |
+| Infographic | Visual summary of key points |
+| Executive Summary | Condensed written summary |
+| Presentation | Slide deck via self-hosted Presenton |
 
 ## Testing
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
+pytest
 ```
 
 ## Security Notes
 
-- Never commit secrets.
-- All `.env*` files are ignored by Git.
-- API routes validate input with Zod.
-- External account-changing actions must remain explicit, audited, and user-approved.
-- Orbita must not automate spam, scraping abuse, CAPTCHA bypasses, fake engagement, mass messaging, or deceptive platform behavior.
+- Never commit secrets; all `.env*` files should be Git-ignored.
+- Validate all operator inputs, including fetched links and uploaded files, before processing.
+- Content Forge must not automate scraping abuse, CAPTCHA bypasses, or deceptive platform behavior when fetching linked content.
+
+## SIH Evaluation Deliverables
+
+- Source code repository link.
+- This README, with setup instructions.
+- Architecture document (max 2 pages).
+- Demo video (max 2 minutes).
+- Technical presentation (max 5 slides).
 
 ## Known Limitations
 
-- Demo state is not yet persisted to Postgres.
-- Live AI generation needs `GEMINI_API_KEY` or `OPENAI_API_KEY`.
-- LinkedIn, X, and Reddit are manual/assisted placeholders until official API setup.
-- Vercel deployment and private GitHub repository creation require connected credentials.
+- Presentation output depends on a running, self-hosted Presenton instance.
+- Video narration depends on a valid ElevenLabs API key.
+- Live Gen AI generation needs `GEMINI_API_KEY` or `OPENAI_API_KEY` configured.
 
 ## Roadmap
 
-1. Add Postgres schema and migrations.
-2. Replace demo auth with production auth provider or hardened single-user auth.
-3. Expand AI-backed strategist/writer/research abstractions with structured outputs.
-4. Persist campaigns, content, people, memory, analytics, and audit logs.
-5. Add official platform connectors where permitted.
-6. Add Playwright end-to-end tests for login, onboarding, content, campaign, network, memory, and analytics.
+1. Finalize ingestion pipeline for all required source content types.
+2. Complete output generators for all seven output types.
+3. Wire up Presenton backend integration end-to-end.
+4. Add automated tests covering ingestion, transformation, and each output type.
+5. Prepare architecture document, demo video, and technical presentation for evaluation.
