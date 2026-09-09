@@ -1,7 +1,55 @@
+import { GoogleGenAI } from "@google/genai";
 import type { Artefact, SourceBundle, TransformControls } from "../types";
+
+const schema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["tldr", "context", "findings", "implications", "nextSteps"],
+  properties: {
+    tldr: { type: "string" }, context: { type: "string" },
+    findings: { type: "array", items: { type: "string" } },
+    implications: { type: "string" }, nextSteps: { type: "array", items: { type: "string" } },
+  },
+};
+
 export async function generateSummary(bundle: SourceBundle, controls: TransformControls): Promise<Artefact> {
-  const src = bundle.text;
   const limit = controls.detail === "Brief" ? 120 : controls.detail === "Detailed" ? 600 : 300;
-  const body = `**TL;DR:** ${src.slice(0, 160)}\n\n**Context:** ${src.slice(160, 500)}\n\n**Key Findings:**\n- ${src.slice(0, 120)}\n- Objective ${controls.objective} for ${controls.audience}\n- Style: ${controls.style}\n\n**Implications:** Operational relevance for policy planning.\n\n**Next Steps:** Brief stakeholders, track indicators. (Target ~${limit} words, detail=${controls.detail})`;
-  return { type: "ExecutiveSummary", title: "Executive Summary", body, metadata: { wordTarget: limit }, warnings: [], confidence: 75 };
+  const src = bundle.text;
+  const warnings: string[] = [];
+  let data: { tldr: string; context: string; findings: string[]; implications: string; nextSteps: string[] } = {
+    tldr: src.slice(0, 160) || "Brief from source",
+    context: src.slice(160, 520) || "Context from source",
+    findings: [src.slice(0, 110) || "Finding 1", `Objective ${controls.objective} for ${controls.audience}`, `Tone ${controls.tone}, style ${controls.style}`].slice(0, controls.detail === "Brief" ? 2 : 5),
+    implications: `Operational relevance for ${controls.audience} — ${controls.objective} in ${controls.language}.`,
+    nextSteps: controls.objective === "Alert" ? ["Alert stakeholders", "Review controls"] : ["Brief stakeholders", "Track indicators"],
+  };
+  let geminiUsed = false;
+
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+      const resp = await client.models.generateContent({
+        model,
+        contents: `Source:\n${src.slice(0, 7000)}\n\nAudience: ${controls.audience}\nTone: ${controls.tone}\nLanguage: ${controls.language}\nDetail: ${controls.detail} (target ${limit} words)\nObjective: ${controls.objective}\nStyle: ${controls.style}\n\nGenerate summary JSON: tldr 2 lines, context 1 para, findings 3-5 bullets, implications 1 para, nextSteps 2-3 bullets. Language=${controls.language}, tone=${controls.tone}.`,
+        config: {
+          systemInstruction: `You are Content Forge executive summary writer. Follow tone/language/detail/objective/style/audience. Length target ${limit} words. Write in ${controls.language}. Return JSON only.`,
+          responseMimeType: "application/json",
+          responseJsonSchema: schema,
+        },
+      });
+      const parsed = JSON.parse(resp.text ?? "{}") as typeof data;
+      if (parsed.tldr && Array.isArray(parsed.findings)) {
+        data = { tldr: parsed.tldr.slice(0, 400), context: (parsed.context || data.context).slice(0, 1200), findings: parsed.findings.slice(0, 5), implications: (parsed.implications || data.implications).slice(0, 800), nextSteps: (parsed.nextSteps || data.nextSteps).slice(0, 4) };
+        geminiUsed = true;
+      }
+    } catch {
+      warnings.push("Gemini Summary failed — using fallback");
+    }
+  } else {
+    warnings.push("GEMINI_API_KEY not set — Summary uses deterministic template");
+  }
+
+  const body = `**TL;DR:** ${data.tldr}\n\n**Context:** ${data.context}\n\n**Key Findings:**\n${data.findings.map((f) => `- ${f}`).join("\n")}\n\n**Implications:** ${data.implications}\n\n**Next Steps:**\n${data.nextSteps.map((s) => `- ${s}`).join("\n")}\n\n*Audience: ${controls.audience} • Tone: ${controls.tone} • Language: ${controls.language} • Style: ${controls.style} • Target ~${limit} words*`;
+  return { type: "ExecutiveSummary", title: `Executive Summary — for ${controls.audience}`, body, metadata: { wordTarget: limit, detail: controls.detail, language: controls.language }, warnings, confidence: geminiUsed ? 86 : 75 };
 }
