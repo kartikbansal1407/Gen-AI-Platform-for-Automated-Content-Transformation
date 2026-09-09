@@ -7,12 +7,9 @@ import {
   Bot,
   CalendarDays,
   Check,
-  ChevronRight,
   Database,
   LineChart,
-  Lock,
   MessageSquareText,
-  Moon,
   Network,
   PenLine,
   Radar,
@@ -20,11 +17,10 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
-  Sun,
   UserPlus,
 } from "lucide-react";
 import type React from "react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   demoAnalytics,
   demoCampaigns,
@@ -34,7 +30,7 @@ import {
   demoOpportunities,
   demoPeople,
 } from "@/lib/demo-data";
-import { createCommandPlan, generateDraft, opportunityYield } from "@/lib/orbita-engine";
+import { createCommandPlan, generateDraft, opportunityYield } from "@/lib/content-forge-engine";
 import type { Campaign, CommandPlan, ContentItem, MemoryEntry, Person, Platform } from "@/lib/types";
 
 const sections = [
@@ -51,7 +47,7 @@ const sections = [
 type Section = (typeof sections)[number]["id"];
 type AiMode = "demo" | "gemini" | "openai" | "thinking";
 const primaryButtonClass =
-  "rounded-md bg-[#f6f3ed] text-[#111111] shadow-sm ring-1 ring-white/10 transition hover:bg-white dark:bg-[#f6f3ed] dark:text-[#111111] dark:hover:bg-white";
+  "rounded-md border border-subtle bg-btn-primary text-primary shadow-sm transition hover:border-strong hover:bg-btn-primary-hover";
 
 type PersistedState = {
   theme: "light" | "dark";
@@ -62,11 +58,9 @@ type PersistedState = {
   onboarded: boolean;
 };
 
-const storageKey = "orbita-demo-state-v1";
+const storageKey = "content-forge-demo-state-v1";
 
-export function OrbitaApp() {
-  const [isAuthed, setIsAuthed] = useState(false);
-  const [accessCode, setAccessCode] = useState("");
+export function ContentForgeApp() {
   const [active, setActive] = useState<Section>("Home");
   const [theme, setTheme] = useState<"light" | "dark">(() => readPersistedState().theme);
   const [command, setCommand] = useState("I want to write something about India's AI policy today and reach young policy researchers.");
@@ -94,8 +88,6 @@ export function OrbitaApp() {
   }, [theme, contents, campaigns, people, memory, onboarded]);
 
   useEffect(() => {
-    if (!isAuthed) return;
-
     let cancelled = false;
 
     fetch("/api/state")
@@ -122,10 +114,10 @@ export function OrbitaApp() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthed]);
+  }, []);
 
   useEffect(() => {
-    if (!isAuthed || !remoteStateLoaded) return;
+    if (!remoteStateLoaded) return;
 
     const nextState: PersistedState = {
       theme,
@@ -150,22 +142,14 @@ export function OrbitaApp() {
     }, 650);
 
     return () => window.clearTimeout(timeout);
-  }, [isAuthed, remoteStateLoaded, theme, contents, campaigns, people, memory, onboarded]);
+  }, [remoteStateLoaded, theme, contents, campaigns, people, memory, onboarded]);
 
-  const dark = theme === "dark";
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning.";
     if (hour < 17) return "Good afternoon.";
     return "Good evening.";
   }, []);
-
-  function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const submittedCode = String(formData.get("accessCode") ?? accessCode);
-    if (submittedCode.trim().length > 0) setIsAuthed(true);
-  }
 
   async function runCommand() {
     setAiMode("thinking");
@@ -224,65 +208,22 @@ export function OrbitaApp() {
       {
         id: `onboarding-${Date.now()}`,
         category: "Onboarding",
-        value: "Wants Orbita to help with policy, AI, research, relationships, and opportunity discovery.",
+        value: "Wants Content Forge to help with policy, AI, research, relationships, and opportunity discovery.",
         editable: true,
       },
       ...items,
     ]);
   }
 
-  if (!isAuthed) {
-    return (
-      <main className={dark ? "min-h-screen bg-[#0d0f12] text-[#f6f3ed]" : "min-h-screen bg-[#f7f4ee] text-[#1e1d1a]"}>
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-10">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <section>
-              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-current/10 px-3 py-1 text-sm">
-                <ShieldCheck className="size-4" />
-                Private demo mode
-              </div>
-              <h1 className="max-w-3xl text-5xl font-semibold tracking-normal sm:text-7xl">Orbita</h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 opacity-75">
-                A personal AI-powered digital presence operating system for content, campaigns, relationships, memory, and meaningful opportunities.
-              </p>
-            </section>
-            <form onSubmit={login} className="rounded-lg border border-current/10 bg-white/70 p-6 shadow-sm backdrop-blur dark:bg-white/[0.04]">
-              <Lock className="mb-6 size-7" />
-              <h2 className="text-2xl font-semibold">Sign in</h2>
-              <p className="mt-2 text-sm opacity-70">
-                Use any access code in local demo mode. In production, set a private access code.
-              </p>
-              <input
-                value={accessCode}
-                onChange={(event) => setAccessCode(event.target.value)}
-                onInput={(event) => setAccessCode(event.currentTarget.value)}
-                name="accessCode"
-                className="mt-6 h-12 w-full rounded-md border border-current/15 bg-transparent px-4 outline-none focus:border-current/40"
-                placeholder="Access code"
-              />
-              <button
-                type="submit"
-                className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#20201d] px-4 text-sm font-medium text-white dark:bg-[#f6f3ed] dark:text-[#111]"
-              >
-                Enter Orbita
-                <ChevronRight className="size-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <main className={dark ? "min-h-screen bg-[#0d0f12] text-[#f6f3ed]" : "min-h-screen bg-[#f7f4ee] text-[#1e1d1a]"}>
+    <main className="min-h-screen bg-main text-primary">
       <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 border-r border-current/10 px-4 py-5 lg:block">
+        <aside className="hidden w-64 shrink-0 border-r border-subtle bg-main px-4 py-5 lg:block">
           <div className="mb-8 flex items-center gap-3 px-2">
-            <div className="grid size-9 place-items-center rounded-md bg-[#f6f3ed] text-sm font-bold text-[#111111] shadow-sm ring-1 ring-white/10">O</div>
+            <div className="grid size-9 place-items-center rounded-md bg-primary text-sm font-bold tracking-tight text-main shadow-sm ring-1 ring-subtle">CF</div>
             <div>
-              <div className="font-semibold">Orbita</div>
-              <div className="text-xs opacity-55">Presence OS</div>
+              <div className="font-semibold text-primary">Content Forge</div>
+              <div className="text-xs text-secondary">Presence OS</div>
             </div>
           </div>
           <nav className="space-y-1">
@@ -291,7 +232,7 @@ export function OrbitaApp() {
                 key={id}
                 onClick={() => setActive(id)}
                 className={`flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm transition ${
-                  active === id ? "bg-current/10" : "hover:bg-current/5"
+                  active === id ? "bg-nested text-primary" : "text-secondary hover:bg-nested hover:text-primary"
                 }`}
               >
                 <Icon className="size-4" />
@@ -302,30 +243,23 @@ export function OrbitaApp() {
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-current/10 bg-inherit/95 px-4 py-3 backdrop-blur lg:px-8">
+          <header className="sticky top-0 z-20 border-b border-subtle bg-main/95 px-4 py-3 backdrop-blur lg:px-8">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2 overflow-x-auto lg:hidden">
                 {sections.slice(0, 6).map(({ id }) => (
-                  <button key={id} onClick={() => setActive(id)} className={`h-9 whitespace-nowrap rounded-md px-3 text-sm ${active === id ? "bg-current/10" : ""}`}>
+                  <button key={id} onClick={() => setActive(id)} className={`h-9 whitespace-nowrap rounded-md px-3 text-sm ${active === id ? "bg-nested text-primary" : "text-secondary"}`}>
                     {id}
                   </button>
                 ))}
               </div>
-              <div className="hidden text-sm opacity-70 lg:block">
+              <div className="hidden text-sm text-secondary lg:block">
                 {dataMode === "database" ? "Database connected; social integrations are manual" : "Demo data is isolated from live integrations"}
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  title="Toggle theme"
-                  onClick={() => setTheme(dark ? "light" : "dark")}
-                  className="grid size-9 place-items-center rounded-md border border-current/10"
-                >
-                  {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-                </button>
-                <button
-                  title="Ask Orbita"
+                  title="Ask Content Forge"
                   onClick={() => setAssistantOpen((value) => !value)}
-                  className="grid size-9 place-items-center rounded-md border border-current/10"
+                  className="grid size-9 place-items-center rounded-md border border-subtle text-secondary hover:border-strong hover:bg-nested hover:text-primary"
                 >
                   <Bot className="size-4" />
                 </button>
@@ -381,12 +315,12 @@ export function OrbitaApp() {
 
 function Onboarding({ onComplete }: { onComplete: () => void }) {
   return (
-    <section className="mb-6 rounded-lg border border-current/10 bg-current/[0.035] p-5">
+    <section className="mb-6 rounded-lg border border-subtle bg-card p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-medium opacity-70">First-run onboarding</p>
-          <h2 className="mt-1 text-2xl font-semibold">Shape Orbita around your goals</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 opacity-70">
+          <p className="text-sm font-medium text-secondary">First-run onboarding</p>
+          <h2 className="mt-1 text-2xl font-semibold text-primary">Shape Content Forge around your goals</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-secondary">
             Current defaults: AI, strategy, geopolitics, research, economics, thoughtful networking, assisted approvals, and no generic AI writing.
           </p>
         </div>
@@ -411,16 +345,16 @@ function HomeSection(props: {
   return (
     <div className="space-y-6">
       <section>
-        <p className="text-lg opacity-70">{props.greeting}</p>
-        <h1 className="mt-1 text-4xl font-semibold tracking-normal">What are we doing today?</h1>
-        <div className="mt-6 rounded-lg border border-current/10 bg-white/70 p-3 shadow-sm dark:bg-white/[0.04]">
+        <p className="text-lg text-secondary">{props.greeting}</p>
+        <h1 className="mt-1 text-4xl font-semibold tracking-normal text-primary">What are we doing today?</h1>
+        <div className="mt-6 rounded-lg border border-subtle bg-card p-3 shadow-sm">
           <textarea
             value={props.command}
             onChange={(event) => props.setCommand(event.target.value)}
-            className="min-h-32 w-full resize-none bg-transparent p-3 text-lg leading-8 outline-none"
+            className="min-h-32 w-full resize-none bg-transparent p-3 text-lg leading-8 text-primary outline-none"
           />
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-current/10 px-3 pt-3">
-            <div className="flex flex-wrap gap-2 text-xs opacity-65">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-subtle px-3 pt-3">
+            <div className="flex flex-wrap gap-2 text-xs text-secondary">
               <span>LinkedIn</span>
               <span>X</span>
               <span>Reddit</span>
@@ -428,22 +362,22 @@ function HomeSection(props: {
             </div>
             <button onClick={props.runCommand} className={`flex h-11 items-center gap-2 px-4 text-sm font-medium ${primaryButtonClass}`}>
               <Sparkles className="size-4" />
-              Ask Orbita
+              Ask Content Forge
             </button>
           </div>
         </div>
       </section>
 
       {props.plan ? (
-        <Panel title="Orbita plan" icon={Bot}>
+        <Panel title="Content Forge plan" icon={Bot}>
           <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
             <div>
-              <div className="text-sm opacity-65">Topic</div>
-              <h3 className="mt-1 text-xl font-semibold">{props.plan.topic}</h3>
-              <p className="mt-2 text-sm opacity-70">Audience: {props.plan.audience}</p>
-              <p className="text-sm opacity-70">Objective: {props.plan.objective}</p>
+              <div className="text-sm text-secondary">Topic</div>
+              <h3 className="mt-1 text-xl font-semibold text-primary">{props.plan.topic}</h3>
+              <p className="mt-2 text-sm text-secondary">Audience: {props.plan.audience}</p>
+              <p className="text-sm text-secondary">Objective: {props.plan.objective}</p>
             </div>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-sm text-primary">
               {props.plan.recommendedActions.map((action) => (
                 <li key={action} className="flex gap-2">
                   <Check className="mt-0.5 size-4 shrink-0" />
@@ -462,7 +396,7 @@ function HomeSection(props: {
               <StatusRow label="Post status" value={props.contents.find((item) => item.platform === platform)?.status ?? "No draft"} />
               <StatusRow label="Recommended interactions" value={platform === "Reddit" ? "2 discussions" : "3 people"} />
               <StatusRow label="Discovery queue" value={platform === "X" ? "5 conversations" : "4 targets"} />
-              <button onClick={() => props.createContent(platform)} className="mt-2 h-10 w-full rounded-md border border-current/15 text-sm">
+              <button onClick={() => props.createContent(platform)} className="mt-2 h-10 w-full rounded-md border border-subtle bg-nested text-sm text-secondary hover:border-strong hover:text-primary">
                 Create {platform} draft
               </button>
             </div>
@@ -472,18 +406,18 @@ function HomeSection(props: {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Active campaign" icon={CalendarDays}>
-          <h3 className="font-semibold">{props.campaigns[0]?.name}</h3>
-          <p className="mt-2 text-sm opacity-70">{props.campaigns[0]?.daysRemaining} days remaining. Relationship-focused recommendations are active.</p>
+          <h3 className="font-semibold text-primary">{props.campaigns[0]?.name}</h3>
+          <p className="mt-2 text-sm text-secondary">{props.campaigns[0]?.daysRemaining} days remaining. Relationship-focused recommendations are active.</p>
         </Panel>
         <Panel title="Daily missions" icon={Check}>
           <div className="space-y-3">
             {demoMissions.map((mission) => (
-              <div key={`${mission.platform}-${mission.action}`} className="border-b border-current/10 pb-3 last:border-0 last:pb-0">
+              <div key={`${mission.platform}-${mission.action}`} className="border-b border-subtle pb-3 last:border-0 last:pb-0">
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="font-medium">{mission.platform}</span>
-                  <span className="rounded-md bg-current/10 px-2 py-1 text-xs">{mission.effort}</span>
+                  <span className="font-medium text-primary">{mission.platform}</span>
+                  <span className="rounded-md border border-badge-border bg-badge px-2 py-1 text-xs text-badge-text">{mission.effort}</span>
                 </div>
-                <p className="mt-1 text-sm opacity-75">{mission.action}</p>
+                <p className="mt-1 text-sm text-secondary">{mission.action}</p>
               </div>
             ))}
           </div>
@@ -494,9 +428,9 @@ function HomeSection(props: {
         <Panel title="Meaningful opportunities" icon={Search}>
           <div className="space-y-3">
             {demoOpportunities.map((opportunity) => (
-              <div key={opportunity.title} className="border-b border-current/10 pb-3 last:border-0 last:pb-0">
-                <div className="font-medium">{opportunity.title}</div>
-                <p className="text-sm opacity-70">{opportunity.why}</p>
+              <div key={opportunity.title} className="border-b border-subtle pb-3 last:border-0 last:pb-0">
+                <div className="font-medium text-primary">{opportunity.title}</div>
+                <p className="text-sm text-secondary">{opportunity.why}</p>
               </div>
             ))}
           </div>
@@ -512,7 +446,7 @@ function CreateSection({ contents, createContent, approveContent }: { contents: 
       <SectionTitle title="Create" subtitle="Platform-aware content workspace with voice and repetition safeguards." />
       <div className="flex flex-wrap gap-2">
         {(["LinkedIn", "X", "Reddit"] as Platform[]).map((platform) => (
-          <button key={platform} onClick={() => createContent(platform)} className="h-10 rounded-md border border-current/15 px-4 text-sm">
+          <button key={platform} onClick={() => createContent(platform)} className="h-10 rounded-md border border-subtle bg-nested px-4 text-sm text-secondary hover:border-strong hover:text-primary">
             New {platform}
           </button>
         ))}
@@ -521,16 +455,16 @@ function CreateSection({ contents, createContent, approveContent }: { contents: 
         {contents.map((item) => (
           <Panel key={item.id} title={item.title} icon={PenLine}>
             <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-              <textarea className="min-h-40 rounded-md border border-current/10 bg-transparent p-3 text-sm leading-7 outline-none" defaultValue={item.body} />
+              <textarea className="min-h-40 rounded-md border border-subtle bg-nested p-3 text-sm leading-7 text-primary outline-none" defaultValue={item.body} />
               <div className="space-y-3 text-sm">
                 <StatusRow label="Platform" value={item.platform} />
                 <StatusRow label="Objective" value={item.objective} />
                 <StatusRow label="Voice match" value={`${item.voiceMatch}%`} />
                 <StatusRow label="Research confidence" value={`${item.confidence}%`} />
-                <p className="rounded-md bg-current/5 p-3 opacity-75">{item.recommendation}</p>
+                <p className="rounded-md border border-subtle bg-nested p-3 text-secondary">{item.recommendation}</p>
                 <div className="flex flex-wrap gap-2">
                   {["Research", "Rewrite", "Shorten", "More natural", "Analytical", "Informal"].map((action) => (
-                    <button key={action} className="h-8 rounded-md border border-current/10 px-2 text-xs">{action}</button>
+                    <button key={action} className="h-8 rounded-md border border-subtle px-2 text-xs text-secondary hover:border-strong hover:text-primary">{action}</button>
                   ))}
                 </div>
                 <button onClick={() => approveContent(item.id)} className={`h-10 w-full text-sm font-medium ${primaryButtonClass}`}>
@@ -575,7 +509,7 @@ function CampaignsSection({ campaigns, setCampaigns }: { campaigns: Campaign[]; 
               <Metric label="People discovered" value={campaign.progress.peopleDiscovered} />
               <Metric label="Useful interactions" value={campaign.progress.usefulInteractions} />
             </div>
-            <p className="mt-4 text-sm opacity-70">Best next step: publish one analytical post and review two people from the target circle. No cold outreach pressure.</p>
+            <p className="mt-4 text-sm text-secondary">Best next step: publish one analytical post and review two people from the target circle. No cold outreach pressure.</p>
           </Panel>
         ))}
       </div>
@@ -589,22 +523,26 @@ function DiscoverSection({ addPerson }: { addPerson: (person: Person) => void })
       <SectionTitle title="Discover" subtitle="Relevant people, conversations, topics, and opportunities without random scrolling." />
       <div className="grid gap-4 lg:grid-cols-2">
         {demoPeople.map((person) => (
-          <Panel key={person.id} title={person.name} icon={UserPlus}>
-            <p className="text-sm font-medium">{person.role}, {person.organization}</p>
-            <p className="mt-2 text-sm opacity-70">{person.why}</p>
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm opacity-70">Relevance {person.relevance}%</span>
-              <button onClick={() => addPerson({ ...person, id: `${person.id}-${Date.now()}` })} className="h-9 rounded-md border border-current/15 px-3 text-sm">Add to network</button>
+          <section key={person.id} className="rounded-lg border border-subtle bg-card p-4 text-primary shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <UserPlus className="size-4 text-secondary" />
+              <h2 className="font-semibold text-primary">{person.name}</h2>
             </div>
-          </Panel>
+            <p className="text-sm font-medium text-primary">{person.role}, {person.organization}</p>
+            <p className="mt-2 text-sm text-secondary">{person.why}</p>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-sm text-secondary">Relevance {person.relevance}%</span>
+              <button onClick={() => addPerson({ ...person, id: `${person.id}-${Date.now()}` })} className="h-9 rounded-md border border-subtle px-3 text-sm text-secondary hover:border-strong hover:text-primary">Add to network</button>
+            </div>
+          </section>
         ))}
       </div>
       <Panel title="Topics worth exploring" icon={BookOpen}>
         <div className="grid gap-3 md:grid-cols-3">
           {["AI x geopolitics", "State capacity", "Undergraduate research culture"].map((topic) => (
-            <div key={topic} className="rounded-md border border-current/10 p-3">
-              <div className="font-medium">{topic}</div>
-              <p className="mt-2 text-sm opacity-70">Recommended angle: make one precise claim, then invite specific disagreement.</p>
+            <div key={topic} className="rounded-md border border-subtle bg-nested p-3">
+              <div className="font-medium text-primary">{topic}</div>
+              <p className="mt-2 text-sm text-secondary">Recommended angle: make one precise claim, then invite specific disagreement.</p>
             </div>
           ))}
         </div>
@@ -619,23 +557,27 @@ function NetworkSection({ people }: { people: Person[] }) {
       <SectionTitle title="Network" subtitle="A lightweight personal CRM for real relationships, not gamified outreach." />
       <div className="grid gap-4">
         {people.map((person) => (
-          <Panel key={person.id} title={person.name} icon={Network}>
+          <section key={person.id} className="rounded-lg border border-subtle bg-card p-4 text-primary shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <Network className="size-4 text-secondary" />
+              <h2 className="font-semibold text-primary">{person.name}</h2>
+            </div>
             <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
               <div>
-                <p className="font-medium">{person.role}, {person.organization}</p>
-                <p className="mt-2 text-sm opacity-70">{person.why}</p>
-                <p className="mt-3 text-sm"><span className="opacity-60">Next suggested action:</span> {person.nextAction}</p>
+                <p className="font-medium text-primary">{person.role}, {person.organization}</p>
+                <p className="mt-2 text-sm text-secondary">{person.why}</p>
+                <p className="mt-3 text-sm text-secondary"><span className="text-secondary">Next suggested action:</span> <span className="text-primary">{person.nextAction}</span></p>
               </div>
-              <div className="rounded-md border border-current/10 p-3 text-sm">
+              <div className="rounded-md border border-subtle bg-nested p-3 text-sm">
                 <StatusRow label="Stage" value={person.stage} />
                 <StatusRow label="Platform" value={person.platform} />
                 <StatusRow label="Distance" value={person.distance} />
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {person.tags.map((tag) => <span key={tag} className="rounded-md bg-current/10 px-2 py-1 text-xs">{tag}</span>)}
+                  {person.tags.map((tag) => <span key={tag} className="rounded-md border border-badge-border bg-badge px-2 py-1 text-xs text-badge-text">{tag}</span>)}
                 </div>
               </div>
             </div>
-          </Panel>
+          </section>
         ))}
       </div>
     </div>
@@ -657,7 +599,7 @@ function AnalyticsSection() {
         ))}
       </div>
       <Panel title="Recommendation" icon={Sparkles}>
-        <p className="text-sm leading-6 opacity-75">
+        <p className="text-sm leading-6 text-secondary">
           Research posts generate fewer impressions than short X ideas in this demo set, but they create more meaningful conversations per 1,000 impressions. Not enough live data yet for posting-time optimization.
         </p>
       </Panel>
@@ -671,10 +613,10 @@ function MemorySection({ memory, setMemory }: { memory: MemoryEntry[]; setMemory
       <SectionTitle title="Memory" subtitle="Inspectable, editable structured memory. Nothing important is hidden in a black box." />
       <div className="grid gap-3">
         {memory.map((entry) => (
-          <div key={entry.id} className="rounded-lg border border-current/10 p-4">
-            <div className="text-sm font-medium opacity-65">{entry.category}</div>
+          <div key={entry.id} className="rounded-lg border border-subtle bg-card p-4">
+            <div className="text-sm font-medium text-secondary">{entry.category}</div>
             <input
-              className="mt-2 w-full bg-transparent text-sm outline-none"
+              className="mt-2 w-full bg-transparent text-sm text-primary outline-none"
               value={entry.value}
               onChange={(event) =>
                 setMemory(memory.map((item) => (item.id === entry.id ? { ...item, value: event.target.value } : item)))
@@ -706,7 +648,7 @@ function SettingsSection({
           <StatusRow label="LinkedIn" value="Manual/assisted mode" />
           <StatusRow label="X" value="Manual/assisted mode" />
           <StatusRow label="Reddit" value="Manual/assisted mode" />
-          <p className="mt-3 text-sm opacity-70">Official API connectors can be added later. Orbita will not bypass platform protections.</p>
+          <p className="mt-3 text-sm text-secondary">Official API connectors can be added later. Content Forge will not bypass platform protections.</p>
         </Panel>
         <Panel title="System health" icon={Activity}>
           <StatusRow label="AI provider" value={aiProviderLabel(aiMode)} />
@@ -716,14 +658,14 @@ function SettingsSection({
         </Panel>
       </div>
       <Panel title="Data controls" icon={Database}>
-        <p className="text-sm leading-6 opacity-75">
+        <p className="text-sm leading-6 text-secondary">
           {dataMode === "database"
-            ? "Orbita is saving your working state to Postgres. Browser storage remains a local fallback."
+            ? "Content Forge is saving your working state to Postgres. Browser storage remains a local fallback."
             : "Demo mode stores your working state in this browser only. Production will move this to Postgres with export and deletion flows."}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button onClick={exportData} className="h-10 rounded-md border border-current/15 px-4 text-sm">Export demo data</button>
-          <button onClick={resetData} className="h-10 rounded-md border border-current/15 px-4 text-sm">Reset demo data</button>
+          <button onClick={exportData} className="h-10 rounded-md border border-subtle bg-nested px-4 text-sm text-secondary hover:border-strong hover:text-primary">Export demo data</button>
+          <button onClick={resetData} className="h-10 rounded-md border border-subtle bg-nested px-4 text-sm text-secondary hover:border-strong hover:text-primary">Reset demo data</button>
         </div>
       </Panel>
     </div>
@@ -732,22 +674,22 @@ function SettingsSection({
 
 function AssistantPanel({ command, setCommand, runCommand }: { command: string; setCommand: (value: string) => void; runCommand: () => void }) {
   return (
-    <aside className="border-l border-current/10 px-4 py-6">
+    <aside className="border-l border-subtle bg-main px-4 py-6">
       <div className="sticky top-20">
         <div className="mb-4 flex items-center gap-2">
-          <Bot className="size-5" />
-          <h2 className="font-semibold">Ask Orbita</h2>
+          <Bot className="size-5 text-secondary" />
+          <h2 className="font-semibold text-primary">Ask Content Forge</h2>
         </div>
         <textarea
           value={command}
           onChange={(event) => setCommand(event.target.value)}
-          className="min-h-44 w-full resize-none rounded-md border border-current/10 bg-transparent p-3 text-sm leading-6 outline-none"
+          className="min-h-44 w-full resize-none rounded-md border border-subtle bg-card p-3 text-sm leading-6 text-primary outline-none"
         />
         <button onClick={runCommand} className={`mt-3 h-10 w-full text-sm font-medium ${primaryButtonClass}`}>
           Generate plan
         </button>
-        <div className="mt-5 rounded-md border border-current/10 p-3 text-sm leading-6 opacity-75">
-          Orbita recommends, prepares, and explains. You approve genuine interactions.
+        <div className="mt-5 rounded-md border border-subtle bg-nested p-3 text-sm leading-6 text-secondary">
+          Content Forge recommends, prepares, and explains. You approve genuine interactions.
         </div>
       </div>
     </aside>
@@ -756,10 +698,10 @@ function AssistantPanel({ command, setCommand, runCommand }: { command: string; 
 
 function Panel({ title, icon: Icon, children }: { title: string; icon: typeof Activity; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-current/10 bg-white/60 p-4 shadow-sm dark:bg-white/[0.035]">
+    <section className="rounded-lg border border-subtle bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
-        <Icon className="size-4 opacity-70" />
-        <h2 className="font-semibold">{title}</h2>
+        <Icon className="size-4 text-secondary" />
+        <h2 className="font-semibold text-primary">{title}</h2>
       </div>
       {children}
     </section>
@@ -769,8 +711,8 @@ function Panel({ title, icon: Icon, children }: { title: string; icon: typeof Ac
 function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <section>
-      <h1 className="text-3xl font-semibold tracking-normal">{title}</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-6 opacity-70">{subtitle}</p>
+      <h1 className="text-3xl font-semibold tracking-normal text-primary">{title}</h1>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-secondary">{subtitle}</p>
     </section>
   );
 }
@@ -778,17 +720,17 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) 
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 py-1">
-      <span className="opacity-60">{label}</span>
-      <span className="text-right font-medium">{value}</span>
+      <span className="text-secondary">{label}</span>
+      <span className="text-right font-medium text-primary">{value}</span>
     </div>
   );
 }
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md border border-current/10 p-3">
-      <div className="text-2xl font-semibold">{value}</div>
-      <div className="mt-1 text-xs uppercase opacity-55">{label}</div>
+    <div className="rounded-md border border-subtle bg-nested p-3">
+      <div className="text-2xl font-semibold text-primary">{value}</div>
+      <div className="mt-1 text-xs uppercase text-secondary">{label}</div>
     </div>
   );
 }
@@ -798,7 +740,7 @@ function exportDemoData(state: PersistedState) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `orbita-demo-export-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `content-forge-demo-export-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }

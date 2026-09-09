@@ -1,6 +1,6 @@
 # Product
 
-Orbita helps one person deliberately build an online presence through ideas, content, distribution, relevant people, conversations, relationships, and opportunities.
+Content Forge helps one person deliberately build an online presence through ideas, content, distribution, relevant people, conversations, relationships, and opportunities.
 
 ## Core Principles
 

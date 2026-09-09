@@ -2,35 +2,35 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Orbita",
-  description: "Orbita privacy policy for Drufiy A.I. Private Limited.",
+  title: "Privacy Policy | Content Forge",
+  description: "Content Forge privacy policy for Drufiy A.I. Private Limited.",
 };
 
 const sections = [
   {
     title: "1. Scope",
     body: [
-      "This Policy applies to Orbita and related services operated by Drufiy. It does not govern LinkedIn, X, Reddit, OpenAI, Vercel, Neon, or other third-party services, which process information under their own terms and privacy policies.",
+      "This Policy applies to Content Forge and related services operated by Drufiy. It does not govern LinkedIn, X, Reddit, OpenAI, Vercel, Neon, or other third-party services, which process information under their own terms and privacy policies.",
     ],
   },
   {
     title: "2. Information we may collect",
     body: [
-      "Account and contact information, such as your name, email address, profile image, access credentials created for Orbita, and support communications.",
+      "Account and contact information, such as your name, email address, profile image, access credentials created for Content Forge, and support communications.",
       "Profile and preference information, including your goals, interests, target audiences, writing preferences, rejected writing patterns, operating mode, and other settings you choose to save.",
       "Content and instructions, including prompts, ideas, drafts, edits, campaign details, notes, uploaded material, and content you approve for publication.",
       "Relationship and opportunity records that you enter or explicitly save, such as names, roles, organizations, profile links, interaction notes, relationship stages, and suggested next actions.",
-      "If you connect a third-party account, we receive only the information and permissions that you authorize and that the platform makes available to Orbita. For a LinkedIn connection, this may include your LinkedIn member identifier, basic profile information, email address, profile image, OAuth tokens, and the ability to publish content on your behalf where the w_member_social permission is granted.",
-      "Orbita does not claim access to your complete LinkedIn feed, private messages, connection list, arbitrary member profiles, or personal-post analytics unless LinkedIn separately authorizes such access and you expressly consent.",
+      "If you connect a third-party account, we receive only the information and permissions that you authorize and that the platform makes available to Content Forge. For a LinkedIn connection, this may include your LinkedIn member identifier, basic profile information, email address, profile image, OAuth tokens, and the ability to publish content on your behalf where the w_member_social permission is granted.",
+      "Content Forge does not claim access to your complete LinkedIn feed, private messages, connection list, arbitrary member profiles, or personal-post analytics unless LinkedIn separately authorizes such access and you expressly consent.",
       "Device and browser information, IP address, timestamps, diagnostic events, error logs, security events, and approximate location derived from an IP address.",
       "Product activity, such as pages visited, features used, content status, approvals, campaigns, exports, resets, and integration health.",
-      "During demo operation, Orbita may store working state locally in your browser using localStorage. Clearing browser data or using another device may remove or make this data unavailable.",
+      "During demo operation, Content Forge may store working state locally in your browser using localStorage. Clearing browser data or using another device may remove or make this data unavailable.",
     ],
   },
   {
     title: "3. How we use personal data",
     body: [
-      "Provide, secure, maintain, and troubleshoot Orbita.",
+      "Provide, secure, maintain, and troubleshoot Content Forge.",
       "Authenticate users and connect accounts that users choose to authorize.",
       "Generate, rewrite, organize, and recommend content, campaigns, research steps, relationships, and opportunities.",
       "Prepare or publish content only after the user takes or confirms the relevant action, unless the user has clearly enabled another permitted operating mode.",
@@ -50,15 +50,15 @@ const sections = [
   {
     title: "5. AI-assisted processing",
     body: [
-      "Orbita may use AI service providers to process prompts, drafts, preferences, and other information needed to generate requested outputs. We will configure providers and data flows according to the features offered and our agreements with them. Do not submit highly sensitive information that is unnecessary for the task.",
+      "Content Forge may use AI service providers to process prompts, drafts, preferences, and other information needed to generate requested outputs. We will configure providers and data flows according to the features offered and our agreements with them. Do not submit highly sensitive information that is unnecessary for the task.",
       "AI output may be incomplete or inaccurate. Users should review generated content, factual claims, recommendations, and external actions before relying on or publishing them.",
     ],
   },
   {
     title: "6. Publishing and external actions",
     body: [
-      "Connecting an account does not give Orbita unlimited control over it. Orbita is designed to keep genuine external interactions under user control. When a user approves publishing through a supported platform API, Orbita may transmit the approved content and the minimum necessary account identifiers or tokens to that platform.",
-      "Orbita does not support spam, fake engagement, deceptive automation, CAPTCHA bypasses, unauthorized scraping, mass messaging, or attempts to evade platform protections.",
+      "Connecting an account does not give Content Forge unlimited control over it. Content Forge is designed to keep genuine external interactions under user control. When a user approves publishing through a supported platform API, Content Forge may transmit the approved content and the minimum necessary account identifiers or tokens to that platform.",
+      "Content Forge does not support spam, fake engagement, deceptive automation, CAPTCHA bypasses, unauthorized scraping, mass messaging, or attempts to evade platform protections.",
     ],
   },
   {
@@ -71,7 +71,7 @@ const sections = [
   {
     title: "8. Data storage, retention, and deletion",
     body: [
-      "Data may be stored in your browser, in Orbita's managed databases, or by service providers acting for us. We retain personal data only for as long as reasonably necessary to provide Orbita, satisfy the purposes described in this Policy, maintain security and audit records, resolve disputes, and comply with legal obligations.",
+      "Data may be stored in your browser, in Content Forge's managed databases, or by service providers acting for us. We retain personal data only for as long as reasonably necessary to provide Content Forge, satisfy the purposes described in this Policy, maintain security and audit records, resolve disputes, and comply with legal obligations.",
       "OAuth tokens are retained only while required to provide the connected feature or until the connection is revoked, subject to platform requirements. When an account is disconnected or deletion is requested, we will delete or de-identify associated data within a reasonable period unless retention is required by law, security needs, dispute resolution, or a valid platform requirement.",
     ],
   },
@@ -85,7 +85,7 @@ const sections = [
   {
     title: "10. International processing",
     body: [
-      "Orbita and its service providers may process information in countries other than your own. Where required, we will use appropriate contractual or legal safeguards for international transfers. Third-party platforms may independently transfer data under their own policies.",
+      "Content Forge and its service providers may process information in countries other than your own. Where required, we will use appropriate contractual or legal safeguards for international transfers. Third-party platforms may independently transfer data under their own policies.",
     ],
   },
   {
@@ -98,19 +98,19 @@ const sections = [
   {
     title: "12. Cookies and local storage",
     body: [
-      "Orbita may use essential cookies or similar technologies for authentication, security, preferences, and service operation. Demo mode currently uses browser localStorage to preserve working state. If non-essential analytics or advertising technologies are introduced, we will provide any notice or consent controls required by law before using them.",
+      "Content Forge may use essential cookies or similar technologies for authentication, security, preferences, and service operation. Demo mode currently uses browser localStorage to preserve working state. If non-essential analytics or advertising technologies are introduced, we will provide any notice or consent controls required by law before using them.",
     ],
   },
   {
     title: "13. Children's privacy",
     body: [
-      "Orbita is not directed to children under 18. We do not knowingly collect personal data from children under 18. If you believe a child has provided personal data, contact us so we can investigate and take appropriate action.",
+      "Content Forge is not directed to children under 18. We do not knowingly collect personal data from children under 18. If you believe a child has provided personal data, contact us so we can investigate and take appropriate action.",
     ],
   },
   {
     title: "14. Third-party links and services",
     body: [
-      "Orbita may display links to profiles, posts, opportunities, websites, or services not controlled by Drufiy. We are not responsible for the privacy, security, availability, or content of third-party services. Review their policies before providing information or authorizing access.",
+      "Content Forge may display links to profiles, posts, opportunities, websites, or services not controlled by Drufiy. We are not responsible for the privacy, security, availability, or content of third-party services. Review their policies before providing information or authorizing access.",
     ],
   },
   {
@@ -123,34 +123,34 @@ const sections = [
     title: "16. Contact and grievance requests",
     body: [
       "Data Fiduciary / Operator: Drufiy A.I. Private Limited",
-      "Product: Orbita",
+      "Product: Content Forge",
       "Privacy and grievance email: drufiyai0001@gmail.com",
-      "Please use the subject line 'Orbita Privacy Request' and describe the request sufficiently for us to identify the relevant account and respond.",
+      "Please use the subject line 'Content Forge Privacy Request' and describe the request sufficiently for us to identify the relevant account and respond.",
     ],
   },
 ];
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#f7f4ee] text-[#1e1d1a]">
+    <main className="min-h-screen bg-main text-primary">
       <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:py-14">
-        <header className="border-b border-black/10 pb-8">
-          <Link href="/" className="text-sm font-medium opacity-70 transition hover:opacity-100">
-            Orbita
+        <header className="border-b border-subtle pb-8">
+          <Link href="/" className="text-sm font-medium text-secondary transition hover:text-primary">
+            Content Forge
           </Link>
-          <h1 className="mt-8 text-4xl font-semibold tracking-normal sm:text-5xl">Orbita Privacy Policy</h1>
-          <p className="mt-4 text-sm leading-6 opacity-70">Effective date: 9 August 2026 | Last updated: 9 August 2026</p>
-          <p className="mt-6 max-w-3xl text-base leading-8 opacity-80">
-            Orbita is operated by Drufiy A.I. Private Limited (&quot;Drufiy&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). This Privacy Policy explains how Orbita collects,
+          <h1 className="mt-8 text-4xl font-semibold tracking-normal text-primary sm:text-5xl">Content Forge Privacy Policy</h1>
+          <p className="mt-4 text-sm leading-6 text-secondary">Effective date: 9 August 2026 | Last updated: 9 August 2026</p>
+          <p className="mt-6 max-w-3xl text-base leading-8 text-secondary">
+            Content Forge is operated by Drufiy A.I. Private Limited (&quot;Drufiy&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). This Privacy Policy explains how Content Forge collects,
             uses, stores, shares, and protects personal data when you use its website, applications, AI-assisted tools, and integrations.
           </p>
         </header>
 
         <div className="mt-8 space-y-8">
           {sections.map((section) => (
-            <section key={section.title} className="rounded-lg border border-black/10 bg-white/60 p-5 shadow-sm">
-              <h2 className="text-xl font-semibold tracking-normal">{section.title}</h2>
-              <div className="mt-4 space-y-3 text-sm leading-7 opacity-80">
+            <section key={section.title} className="rounded-lg border border-subtle bg-card p-5 shadow-sm">
+              <h2 className="text-xl font-semibold tracking-normal text-primary">{section.title}</h2>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-secondary">
                 {section.body.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}

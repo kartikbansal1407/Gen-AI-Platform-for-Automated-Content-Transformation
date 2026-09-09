@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 
 declare global {
-  var orbitaPool: Pool | undefined;
+  var contentForgePool: Pool | undefined;
 }
 
 export function hasDatabase() {
@@ -13,13 +13,13 @@ export function getPool() {
     throw new Error("DATABASE_URL is not configured.");
   }
 
-  globalThis.orbitaPool ??= new Pool({
+  globalThis.contentForgePool ??= new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
     max: 3,
   });
 
-  return globalThis.orbitaPool;
+  return globalThis.contentForgePool;
 }
 
 let schemaReady: Promise<void> | null = null;
@@ -53,7 +53,7 @@ export function ensureCoreSchema() {
 export async function ensureDefaultUser() {
   const pool = getPool();
   await ensureCoreSchema();
-  const email = "owner@orbita.local";
+  const email = "owner@content-forge.local";
   const result = await pool.query<{ id: string }>(
     `
       insert into users (email, display_name)
@@ -62,7 +62,7 @@ export async function ensureDefaultUser() {
       do update set updated_at = now()
       returning id
     `,
-    [email, "Orbita Owner"],
+    [email, "Content Forge Owner"],
   );
 
   return result.rows[0].id;

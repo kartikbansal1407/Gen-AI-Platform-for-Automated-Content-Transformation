@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-export const SESSION_COOKIE = "orbita_session";
+export const SESSION_COOKIE = "content_forge_session";
 
 export async function isAuthenticated() {
   const cookieStore = await cookies();
@@ -8,7 +8,7 @@ export async function isAuthenticated() {
 }
 
 export function isValidAccessCode(code: string) {
-  const configured = process.env.ORBITA_ACCESS_CODE;
+  const configured = process.env.CONTENT_FORGE_ACCESS_CODE;
   if (!configured) return code.trim().length >= 1;
   return code === configured;
 }

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import { z } from "zod";
-import { createCommandPlan, generateDraft } from "./orbita-engine";
+import { createCommandPlan, generateDraft } from "./content-forge-engine";
 import type { CommandPlan, ContentItem, Objective, Platform } from "./types";
 
 type AiMode = "gemini" | "openai" | "demo";
@@ -212,10 +212,10 @@ export async function createAiCommandPlan(command: string): Promise<{ mode: AiMo
     try {
       const response = await client.models.generateContent({
         model: geminiModel(),
-        contents: `Create an Orbita command plan for this request: ${command}`,
+        contents: `Create a Content Forge command plan for this request: ${command}`,
         config: {
           systemInstruction:
-            "You are Orbita, a personal digital presence strategist. Create platform-aware, human-led plans. Never recommend spam, fake engagement, mass messaging, or automated social abuse. Return JSON only.",
+            "You are Content Forge, a personal digital presence strategist. Create platform-aware, human-led plans. Never recommend spam, fake engagement, mass messaging, or automated social abuse. Return JSON only.",
           responseMimeType: "application/json",
           responseJsonSchema: commandPlanJsonSchema,
         },
@@ -238,17 +238,17 @@ export async function createAiCommandPlan(command: string): Promise<{ mode: AiMo
         {
           role: "system",
           content:
-            "You are Orbita, a personal digital presence strategist. Create platform-aware, human-led plans. Never recommend spam, fake engagement, mass messaging, or automated social abuse. Return JSON only.",
+            "You are Content Forge, a personal digital presence strategist. Create platform-aware, human-led plans. Never recommend spam, fake engagement, mass messaging, or automated social abuse. Return JSON only.",
         },
         {
           role: "user",
-          content: `Create an Orbita command plan for this request: ${command}`,
+          content: `Create a Content Forge command plan for this request: ${command}`,
         },
       ],
       text: {
         format: {
           type: "json_schema",
-          name: "orbita_command_plan",
+          name: "content_forge_command_plan",
           schema: {
             ...commandPlanJsonSchema,
           },
@@ -283,7 +283,7 @@ export async function createAiDraft(input: {
         contents: `Create a ${input.platform} draft about ${input.topic} for ${input.audience}. Objective: ${input.objective}.`,
         config: {
           systemInstruction:
-            "You are Orbita's writer. Write analytical, conversational, natural content. Avoid generic LinkedIn guru language, fake vulnerability, excessive emojis, spam, and identical cross-posting. Return JSON only.",
+            "You are Content Forge's writer. Write analytical, conversational, natural content. Avoid generic LinkedIn guru language, fake vulnerability, excessive emojis, spam, and identical cross-posting. Return JSON only.",
           responseMimeType: "application/json",
           responseJsonSchema: contentItemJsonSchema,
         },
@@ -306,7 +306,7 @@ export async function createAiDraft(input: {
         {
           role: "system",
           content:
-            "You are Orbita's writer. Write analytical, conversational, natural content. Avoid generic LinkedIn guru language, fake vulnerability, excessive emojis, spam, and identical cross-posting. Return JSON only.",
+            "You are Content Forge's writer. Write analytical, conversational, natural content. Avoid generic LinkedIn guru language, fake vulnerability, excessive emojis, spam, and identical cross-posting. Return JSON only.",
         },
         {
           role: "user",
@@ -316,7 +316,7 @@ export async function createAiDraft(input: {
       text: {
         format: {
           type: "json_schema",
-          name: "orbita_content_item",
+          name: "content_forge_content_item",
           schema: {
             ...contentItemJsonSchema,
           },

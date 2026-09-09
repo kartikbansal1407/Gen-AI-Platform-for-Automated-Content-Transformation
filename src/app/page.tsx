@@ -1,5 +1,5 @@
-import { OrbitaApp } from "@/components/orbita-app";
+import { ContentForgeApp } from "@/components/content-forge-app";
 
 export default function Home() {
-  return <OrbitaApp />;
+  return <ContentForgeApp />;
 }

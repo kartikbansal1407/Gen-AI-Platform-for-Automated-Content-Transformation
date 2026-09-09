@@ -6,11 +6,11 @@ Never commit API keys, tokens, passwords, `.env.local`, credential exports, or g
 
 ## Authentication
 
-The MVP includes a simple access-code flow for demo usage. Production should set `ORBITA_ACCESS_CODE` immediately and later replace this with a robust auth provider or hardened single-user auth.
+The MVP includes a simple access-code flow for demo usage. Production should set `CONTENT_FORGE_ACCESS_CODE` immediately and later replace this with a robust auth provider or hardened single-user auth.
 
 ## Platform Safety
 
-Orbita must not implement:
+Content Forge must not implement:
 
 - CAPTCHA solving
 - anti-bot bypasses

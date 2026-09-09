@@ -1,27 +1,67 @@
 @import "tailwindcss";
 
+@config "../../tailwind.config.js";
+
+/*
+ * Content Forge dark monochrome theme (single source of truth).
+ * Page: #0A0A0A | Card: #161616 | Nested: #1F1F1F | Border: #404040
+ * Text primary #F0F0F0 | secondary #A1A1A1 | muted #6E6E6E (large text only, see note)
+ * Button #2A2A2A / hover #404040 + border #525252 | Badge bg #222222 / border #404040 / text #D4D4D4
+ */
 :root {
-  --background: #f7f4ee;
-  --foreground: #1e1d1a;
+  color-scheme: dark;
+
+  --bg-main: #0a0a0a;
+  --bg-card: #161616;
+  --bg-nested: #1f1f1f;
+  --border-subtle: #404040;
+  --border-strong: #525252;
+
+  --text-primary: #f0f0f0;
+  --text-secondary: #a1a1a1;
+  /* NOTE: #6e6e6e measures ~3.5:1 on card backgrounds — WCAG AA only for
+     large text (>=24px, or >=19px bold) and decorative icons. All small
+     functional text must use --text-secondary or --text-primary. */
+  --text-muted: #6e6e6e;
+
+  --btn-primary: #2a2a2a;
+  --btn-primary-hover: #404040;
+
+  --badge-bg: #222222;
+  --badge-border: #404040;
+  --badge-text: #d4d4d4;
+
+  --background: var(--bg-main);
+  --foreground: var(--text-primary);
 }
 
 @theme inline {
+  --color-main: var(--bg-main);
+  --color-card: var(--bg-card);
+  --color-nested: var(--bg-nested);
+  --color-subtle: var(--border-subtle);
+  --color-strong: var(--border-strong);
+
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+
+  --color-btn-primary: var(--btn-primary);
+  --color-btn-primary-hover: var(--btn-primary-hover);
+
+  --color-badge: var(--badge-bg);
+  --color-badge-border: var(--badge-border);
+  --color-badge-text: var(--badge-text);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-main);
+  color: var(--text-primary);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
@@ -40,6 +80,16 @@ button {
 }
 
 ::selection {
-  background: #d8cfc0;
-  color: #111;
+  background: #404040;
+  color: #f0f0f0;
+}
+
+:focus-visible {
+  outline: 2px solid #a1a1a1;
+  outline-offset: 2px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a1a1a1;
 }

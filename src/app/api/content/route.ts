@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Orbita needs a platform, topic, audience, and objective to create a draft." },
+      { error: "Content Forge needs a platform, topic, audience, and objective to create a draft." },
       { status: 400 },
     );
   }

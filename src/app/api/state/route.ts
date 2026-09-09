@@ -11,7 +11,7 @@ const persistedStateSchema = z.object({
   onboarded: z.boolean(),
 });
 
-const preferenceKey = "orbita_app_state_v1";
+const preferenceKey = "content_forge_app_state_v1";
 
 export async function GET() {
   if (!hasDatabase()) {
@@ -34,7 +34,7 @@ export async function PUT(request: NextRequest) {
   const parsed = persistedStateSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Orbita could not save that app state." }, { status: 400 });
+    return NextResponse.json({ error: "Content Forge could not save that app state." }, { status: 400 });
   }
 
   if (!hasDatabase()) {

@@ -4,9 +4,9 @@ import {
   detectPlatforms,
   inferObjective,
   opportunityYield,
-} from "./orbita-engine";
+} from "./content-forge-engine";
 
-describe("orbita engine", () => {
+describe("content forge engine", () => {
   it("detects platform-specific requests", () => {
     expect(detectPlatforms("Give me three X posts about geopolitics")).toEqual(["X"]);
     expect(detectPlatforms("Write for LinkedIn and Reddit")).toEqual(["LinkedIn", "Reddit"]);

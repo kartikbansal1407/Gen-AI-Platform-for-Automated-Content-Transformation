@@ -1,6 +1,6 @@
-# Orbita
+# Content Forge
 
-Orbita is a personal AI-powered digital presence operating system. It helps one user turn ideas into platform-aware content, campaigns, relationship tracking, memory, analytics, and opportunity discovery across LinkedIn, X, and Reddit.
+Content Forge is a personal AI-powered digital presence operating system. It helps one user turn ideas into platform-aware content, campaigns, relationship tracking, memory, analytics, and opportunity discovery across LinkedIn, X, and Reddit.
 
 This MVP is built as a responsive Next.js app for Vercel. It currently runs in demo/manual mode so the product is usable before database, AI, and platform API credentials are connected.
 
@@ -18,14 +18,14 @@ This MVP is built as a responsive Next.js app for Vercel. It currently runs in d
 - Settings with integration health and manual/assisted mode.
 - Browser-local demo persistence with export/reset controls.
 - API routes for assistant plans, content drafts, auth, and health.
-- Unit tests for core Orbita decision logic.
+- Unit tests for core Content Forge decision logic.
 
 ## Architecture
 
 - `src/app` contains Next.js app routes and API routes.
 - `src/components` contains product UI.
-- `src/lib` contains typed domain models, demo data, auth helpers, and Orbita logic.
-- `src/lib/orbita-engine.ts` is the current deterministic strategist/writer fallback. It is designed to sit behind an AI service abstraction later.
+- `src/lib` contains typed domain models, demo data, auth helpers, and Content Forge logic.
+- `src/lib/content-forge-engine.ts` is the current deterministic strategist/writer fallback. It is designed to sit behind an AI service abstraction later.
 
 ## Local Development
 
@@ -34,13 +34,13 @@ npm install
 npm run dev
 ```
 
-Open the local URL shown by Next.js. In local demo mode, any non-empty access code works. In production, set `ORBITA_ACCESS_CODE`.
+Open the local URL shown by Next.js. In local demo mode, any non-empty access code works. In production, set `CONTENT_FORGE_ACCESS_CODE`.
 
 ## Environment Variables
 
 Copy `.env.example` to `.env.local` for local development. Do not commit `.env.local`.
 
-- `ORBITA_ACCESS_CODE`: private app access code.
+- `CONTENT_FORGE_ACCESS_CODE`: private app access code.
 - `DATABASE_URL`: managed Postgres connection string.
 - `AI_PROVIDER`: `gemini` or `openai`. Defaults to Gemini when `GEMINI_API_KEY` exists.
 - `GEMINI_API_KEY`: Gemini API key for AI generation.
@@ -62,7 +62,7 @@ Target platform: Vercel.
 
 Required before production deployment:
 
-1. Add `ORBITA_ACCESS_CODE`.
+1. Add `CONTENT_FORGE_ACCESS_CODE`.
 2. Add `DATABASE_URL` when persistent multi-session data is required.
 3. Add `GEMINI_API_KEY` or `OPENAI_API_KEY` when live AI generation is enabled.
 4. Connect GitHub repository to Vercel.
@@ -82,7 +82,7 @@ npm run build
 - All `.env*` files are ignored by Git.
 - API routes validate input with Zod.
 - External account-changing actions must remain explicit, audited, and user-approved.
-- Orbita must not automate spam, scraping abuse, CAPTCHA bypasses, fake engagement, mass messaging, or deceptive platform behavior.
+- Content Forge must not automate spam, scraping abuse, CAPTCHA bypasses, fake engagement, mass messaging, or deceptive platform behavior.
 
 ## Known Limitations
 
