@@ -23,6 +23,9 @@ export async function GET() {
       x: Boolean(process.env.X_CLIENT_ID),
       reddit: Boolean(process.env.REDDIT_CLIENT_ID),
       vercel: Boolean(process.env.VERCEL_TOKEN),
+      elevenlabs: Boolean(process.env.ELEVENLABS_API_KEY),
+      presentation: Boolean(process.env.GEMINI_API_KEY),
+      ingestion: true,
     },
   });
 }

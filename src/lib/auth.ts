@@ -2,13 +2,13 @@ import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "orbita_session";
 
+// Access code removed — app is open. Keep cookie helpers for backwards compat.
 export async function isAuthenticated() {
-  const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE)?.value === "demo-session";
+  void cookies;
+  return true;
 }
 
-export function isValidAccessCode(code: string) {
-  const configured = process.env.ORBITA_ACCESS_CODE;
-  if (!configured) return code.trim().length >= 1;
-  return code === configured;
+export function isValidAccessCode(_code: unknown) {
+  void _code;
+  return true;
 }

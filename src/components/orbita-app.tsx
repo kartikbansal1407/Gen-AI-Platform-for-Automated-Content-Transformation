@@ -7,10 +7,8 @@ import {
   Bot,
   CalendarDays,
   Check,
-  ChevronRight,
   Database,
   LineChart,
-  Lock,
   MessageSquareText,
   Moon,
   Network,
@@ -24,7 +22,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import type React from "react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   demoAnalytics,
   demoCampaigns,
@@ -36,8 +34,10 @@ import {
 } from "@/lib/demo-data";
 import { createCommandPlan, generateDraft, opportunityYield } from "@/lib/orbita-engine";
 import type { Campaign, CommandPlan, ContentItem, MemoryEntry, Person, Platform } from "@/lib/types";
+import { TransformDashboard } from "./transform-dashboard";
 
 const sections = [
+  { id: "Transform", icon: Sparkles },
   { id: "Home", icon: Activity },
   { id: "Create", icon: PenLine },
   { id: "Campaigns", icon: CalendarDays },
@@ -65,9 +65,7 @@ type PersistedState = {
 const storageKey = "orbita-demo-state-v1";
 
 export function OrbitaApp() {
-  const [isAuthed, setIsAuthed] = useState(false);
-  const [accessCode, setAccessCode] = useState("");
-  const [active, setActive] = useState<Section>("Home");
+  const [active, setActive] = useState<Section>("Transform");
   const [theme, setTheme] = useState<"light" | "dark">(() => readPersistedState().theme);
   const [command, setCommand] = useState("I want to write something about India's AI policy today and reach young policy researchers.");
   const [plan, setPlan] = useState<CommandPlan | null>(null);
@@ -94,8 +92,6 @@ export function OrbitaApp() {
   }, [theme, contents, campaigns, people, memory, onboarded]);
 
   useEffect(() => {
-    if (!isAuthed) return;
-
     let cancelled = false;
 
     fetch("/api/state")
@@ -122,10 +118,10 @@ export function OrbitaApp() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthed]);
+  }, []);
 
   useEffect(() => {
-    if (!isAuthed || !remoteStateLoaded) return;
+    if (!remoteStateLoaded) return;
 
     const nextState: PersistedState = {
       theme,
@@ -150,7 +146,7 @@ export function OrbitaApp() {
     }, 650);
 
     return () => window.clearTimeout(timeout);
-  }, [isAuthed, remoteStateLoaded, theme, contents, campaigns, people, memory, onboarded]);
+  }, [remoteStateLoaded, theme, contents, campaigns, people, memory, onboarded]);
 
   const dark = theme === "dark";
   const greeting = useMemo(() => {
@@ -159,13 +155,6 @@ export function OrbitaApp() {
     if (hour < 17) return "Good afternoon.";
     return "Good evening.";
   }, []);
-
-  function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const submittedCode = String(formData.get("accessCode") ?? accessCode);
-    if (submittedCode.trim().length > 0) setIsAuthed(true);
-  }
 
   async function runCommand() {
     setAiMode("thinking");
@@ -231,49 +220,6 @@ export function OrbitaApp() {
     ]);
   }
 
-  if (!isAuthed) {
-    return (
-      <main className={dark ? "min-h-screen bg-[#0d0f12] text-[#f6f3ed]" : "min-h-screen bg-[#f7f4ee] text-[#1e1d1a]"}>
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-10">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <section>
-              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-current/10 px-3 py-1 text-sm">
-                <ShieldCheck className="size-4" />
-                Private demo mode
-              </div>
-              <h1 className="max-w-3xl text-5xl font-semibold tracking-normal sm:text-7xl">Orbita</h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 opacity-75">
-                A personal AI-powered digital presence operating system for content, campaigns, relationships, memory, and meaningful opportunities.
-              </p>
-            </section>
-            <form onSubmit={login} className="rounded-lg border border-current/10 bg-white/70 p-6 shadow-sm backdrop-blur dark:bg-white/[0.04]">
-              <Lock className="mb-6 size-7" />
-              <h2 className="text-2xl font-semibold">Sign in</h2>
-              <p className="mt-2 text-sm opacity-70">
-                Use any access code in local demo mode. In production, set a private access code.
-              </p>
-              <input
-                value={accessCode}
-                onChange={(event) => setAccessCode(event.target.value)}
-                onInput={(event) => setAccessCode(event.currentTarget.value)}
-                name="accessCode"
-                className="mt-6 h-12 w-full rounded-md border border-current/15 bg-transparent px-4 outline-none focus:border-current/40"
-                placeholder="Access code"
-              />
-              <button
-                type="submit"
-                className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#20201d] px-4 text-sm font-medium text-white dark:bg-[#f6f3ed] dark:text-[#111]"
-              >
-                Enter Orbita
-                <ChevronRight className="size-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className={dark ? "min-h-screen bg-[#0d0f12] text-[#f6f3ed]" : "min-h-screen bg-[#f7f4ee] text-[#1e1d1a]"}>
       <div className="flex min-h-screen">
@@ -336,6 +282,7 @@ export function OrbitaApp() {
           <div className="grid flex-1 grid-cols-1 xl:grid-cols-[1fr_360px]">
             <div className="min-w-0 px-4 py-6 lg:px-8">
               {!onboarded ? <Onboarding onComplete={completeOnboarding} /> : null}
+              {active === "Transform" ? <TransformDashboard /> : null}
               {active === "Home" ? (
                 <HomeSection
                   greeting={greeting}

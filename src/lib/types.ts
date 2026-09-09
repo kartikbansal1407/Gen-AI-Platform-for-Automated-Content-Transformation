@@ -104,3 +104,54 @@ export type CommandPlan = {
   recommendedActions: string[];
   draft?: ContentItem;
 };
+
+// Content Forge types
+export type OutputType = "Video" | "LinkedIn" | "Twitter" | "Advisory" | "Infographic" | "ExecutiveSummary" | "Presentation";
+
+export type TransformTone = "Analytical" | "Conversational" | "Formal" | "Persuasive" | "Advisory" | "Playful";
+export type TransformLanguage = "English" | "Hindi" | "Hinglish";
+export type TransformDetail = "Brief" | "Standard" | "Detailed";
+export type TransformStyle = "Professional" | "Journalistic" | "Technical" | "Narrative" | "Bullet-brief";
+export type TransformObjective = "Inform" | "Persuade" | "Alert" | "Mobilize" | "Brief" | "Credibility" | "Reach" | "Conversations" | "Networking" | "Opportunity" | "Thought leadership" | "Relationships" | "Authority" | "Followers";
+
+export type TransformControls = {
+  audience: string;
+  tone: TransformTone;
+  language: TransformLanguage;
+  detail: TransformDetail;
+  objective: TransformObjective;
+  style: TransformStyle;
+  outputs: OutputType[];
+};
+
+export type SourceBundle = {
+  text: string;
+  prompt?: string;
+  docs?: { filename: string; mime: string; text: string }[];
+  images?: { filename: string; mime: string; caption?: string }[];
+  video?: { filename: string; mime: string } | null;
+  urlMeta?: { url: string; title?: string; text?: string } | null;
+};
+
+export type Artefact = {
+  type: OutputType;
+  title: string;
+  body: string;
+  metadata: Record<string, unknown>;
+  warnings: string[];
+  confidence: number;
+};
+
+export type TransformResult = {
+  sourceSummary: string;
+  artefacts: Artefact[];
+};
+
+export type TransformationJob = {
+  id: string;
+  sourceBundle: SourceBundle;
+  controls: TransformControls;
+  artefacts: Artefact[];
+  status: "processing" | "done" | "partial";
+  createdAt: string;
+};

@@ -1,55 +1,30 @@
-# Architecture
+# Architecture — Content Forge (SIH PS 26154)
 
-Orbita is a Vercel-oriented Next.js application using TypeScript, React, Tailwind CSS, and typed domain modules.
+Next.js 16 App Router + TypeScript + Tailwind + pg + Gemini/OpenAI. Builds on Orbita MVP.
 
-## Product Layers
+## Pipeline
 
-- Interface: responsive command-center UI in `src/components/orbita-app.tsx`.
-- Domain logic: strategist, writer fallback, platform detection, and analytics helpers in `src/lib/orbita-engine.ts`.
-- Data: demo seed data in `src/lib/demo-data.ts`; browser-local demo persistence in the client; future production data should move to Postgres through a repository layer.
-- API: route handlers in `src/app/api`.
+Ingest (`src/lib/ingest/`) → Transform (`src/lib/transform/` orchestrator + prompt) → Outputs (`src/lib/outputs/` 7 generators) → API (`src/app/api/transform`, `/jobs`, `/health`, `/assistant`) → UI (`transform-dashboard` + legacy Orbita).
 
-## Future Database Tables
+## Modules
 
-The initial migration lives at `db/migrations/001_initial_schema.sql`.
+- `src/lib/types.ts` — `SourceBundle`, `TransformControls`, `OutputType` (7), `Artefact`, `TransformResult`, `TransformationJob` + legacy `Platform`.
+- `src/lib/ingest/` — `parse.ts` (PDF/DOCX/TXT ≤10MB), `url.ts` (SSRF guard, 8s timeout, no CAPTCHA bypass), `image.ts`/`video.ts` validators, `normalize.ts` (canonical bundle).
+- `src/lib/outputs/` — `video` (ElevenLabs optional), `linkedin`, `twitter`, `advisory`, `infographic`, `summary`, `presentation` (Gemini `GEMINI_API_KEY` → 8–12 slides JSON; deterministic fallback when key missing).
+- `src/lib/transform/index.ts` — `transformSource(bundle, controls)` via `Promise.allSettled` (partial success).
+- `db/migrations/002_content_forge.sql` — `transformation_jobs`, `artefacts`, `source_documents`; fallback to localStorage without `DATABASE_URL`.
 
-- `users`
-- `profiles`
-- `platform_accounts`
-- `campaigns`
-- `campaign_targets`
-- `content_items`
-- `content_versions`
-- `publishing_jobs`
-- `people`
-- `relationships`
-- `interactions`
-- `topics`
-- `opportunities`
-- `analytics_events`
-- `analytics_snapshots`
-- `memories`
-- `user_preferences`
-- `experiments`
-- `research_sources`
-- `system_metrics`
-- `audit_logs`
+## API
 
-## AI Design
+- `POST /api/transform` — `{text, url, docs[], controls}` → `{jobId, sourceSummary, artefacts[]}` (Zod, multi-output).
+- `GET /api/jobs`, `GET /api/jobs/:id` — history.
+- `POST /api/assistant` — also supports refine `{jobId, artefactType, instruction}`.
+- `GET /api/health` — `integrations.elevenlabs/presentation/ingestion` (`presentation` = `GEMINI_API_KEY` set).
 
-Keep AI behind simple service functions:
+## Security
 
-- Strategist
-- Writer
-- Researcher
-- Audience matcher
-- Discovery ranker
-- Relationship assistant
-- Analytics interpreter
-- Memory manager
+Zod everywhere, file MIME/size checks, SSRF guard, no headless browser, secrets via `.env.local` (gitignored), audit via `audit_logs`.
 
-Use structured outputs for saved data, validate before persistence, and degrade to demo/manual mode when credentials are missing.
+## Deploy
 
-## Integration Philosophy
-
-Use official platform APIs where practical and permitted. For unsupported actions, Orbita should prepare work and open a human-assisted workflow. It must not bypass platform protections.
+Vercel; `npm run lint && typecheck && test && build`; `npm run db:migrate` when `DATABASE_URL` set.
