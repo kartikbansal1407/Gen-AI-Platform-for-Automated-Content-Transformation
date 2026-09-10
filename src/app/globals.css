@@ -3,8 +3,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f7f4ee;
-  --foreground: #1e1d1a;
+  --background: #f5f7f8;
+  --foreground: #14212b;
+  --surface: #ffffff;
+  --surface-muted: #edf1f3;
+  --line: #dfe5e8;
+  --muted: #667681;
+  --brand: #173f4f;
+  --brand-strong: #0f303d;
+  --accent: #d9ff72;
 }
 
 @theme inline {
@@ -14,17 +21,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--background);
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -33,15 +40,67 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
-button {
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) {
   cursor: pointer;
 }
 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #547888;
+  outline-offset: 2px;
+}
+
 ::selection {
-  background: #d8cfc0;
-  color: #111;
+  background: #d9ff72;
+  color: #0f303d;
+}
+
+.dark {
+  --background: #0b1216;
+  --foreground: #eaf0f2;
+  --surface: #111b21;
+  --surface-muted: #17242b;
+  --line: #24343d;
+  --muted: #94a4ad;
+  --brand: #d9ff72;
+  --brand-strong: #efffb9;
+  --accent: #d9ff72;
+}
+
+.orbita-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: 0 1px 1px rgb(11 18 22 / 0.03), 0 14px 40px rgb(18 39 48 / 0.04);
+}
+
+.orbita-input {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.orbita-input:focus {
+  border-color: #7593a0;
+  box-shadow: 0 0 0 3px rgb(117 147 160 / 0.12);
+}
+
+.orbita-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #aebbc1 transparent;
 }
