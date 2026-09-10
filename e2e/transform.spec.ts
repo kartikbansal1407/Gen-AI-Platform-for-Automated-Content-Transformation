@@ -23,6 +23,10 @@ async function navigate(page: Page, name: string) {
     .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name, exact: true })
     .click();
+  if (name === "New Transformation") {
+    await expect(page.getByRole("heading", { name: /Turn one source into work you can actually use/i })).toBeVisible();
+    return;
+  }
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
 }
 
