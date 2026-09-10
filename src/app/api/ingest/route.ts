@@ -1,23 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { parseBuffer } from "@/lib/ingest/parse";
-
+import { NextResponse } from "next/server";
+import { guardApi } from "@/lib/api-guard";
+import { readIngestRequest } from "@/lib/ingest-request";
 export const runtime = "nodejs";
-
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
+  const denied = await guardApi(request, "ingest");
+  if (denied) return denied;
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    if (file.size > 25 * 1024 * 1024) return NextResponse.json({ error: "File too large (max 25 MB)" }, { status: 400 });
-    const buf = Buffer.from(await file.arrayBuffer());
-    const parsed = await parseBuffer(buf, file.type || "application/octet-stream", file.name);
-    // sanity: if still looks like binary PDF, flag it
-    const looksBinary = parsed.text.includes("%PDF") && parsed.text.includes("obj") && parsed.text.length < 500;
-    if (looksBinary) {
-      return NextResponse.json({ ...parsed, warning: "PDF appears scanned or binary — text extraction limited" });
-    }
-    return NextResponse.json(parsed);
-  } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    const { source, documents, warnings } = await readIngestRequest(request);
+    return NextResponse.json({
+      source,
+      documents,
+      warnings,
+      preview: [source.text, ...(source.documents ?? []), source.linkText]
+        .filter(Boolean)
+        .join("\n\n")
+        .slice(0, 5000),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Unable to ingest source.",
+      },
+      { status: 400 },
+    );
   }
 }

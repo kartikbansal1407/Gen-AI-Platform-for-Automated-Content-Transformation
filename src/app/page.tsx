@@ -1,5 +1,5 @@
-import { OrbitaApp } from "@/components/orbita-app";
-
-export default function Home() {
-  return <OrbitaApp />;
+import { redirect } from "next/navigation";
+import { isAuthenticated } from "@/backend/auth";
+export default async function Home() {
+  redirect((await isAuthenticated()) ? "/dashboard" : "/login");
 }

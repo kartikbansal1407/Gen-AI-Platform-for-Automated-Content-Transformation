@@ -8,9 +8,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Orbita Agent Notes
+# Content Forge Agent Notes
 
-Orbita is a personal AI-powered digital presence operating system. Future agents should preserve the product philosophy: useful content, relevant people, real conversations, relationships, and opportunities.
+Content Forge is SIH 26154 Gen AI Platform for Automated Content Transformation (NTRO) — Next.js 16 + TypeScript (not Python). `npm` is entry point, vision/video best-effort, 7 outputs via JSON-schema prompts. Preserve product philosophy: source-faithful outputs, operator-controlled voice, useful content, relevant relationships, real conversations, and compliance (no spam/scraping abuse).
 
 ## Rules
 

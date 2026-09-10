@@ -3,38 +3,31 @@ import path from "node:path";
 import process from "node:process";
 import pg from "pg";
 
-function loadEnvFile(filePath) {
-  return fs
-    .readFile(filePath, "utf8")
-    .then((content) => {
-      for (const line of content.split(/\r?\n/)) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
-        const normalized = trimmed.replace(/^export\s+/, "");
-        const [rawKey, ...rest] = normalized.split("=");
-        const key = rawKey.trim();
-        if (process.env[key]) continue;
-        process.env[key] = rest.join("=").trim().replace(/^["']|["']$/g, "");
-      }
-    })
-    .catch(() => undefined);
-}
+import { loadProjectEnv } from "./load-env.mjs";
 
-await loadEnvFile(path.join(process.cwd(), ".env.local"));
-await loadEnvFile(path.join(process.cwd(), ".env.production.local"));
+loadProjectEnv();
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing. Pull Vercel env vars or set it locally first.");
+  throw new Error(
+    "DATABASE_URL is missing. Set a working PostgreSQL connection in .env or .env.local before running migrations.",
+  );
 }
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 30000,
+  ssl:
+    process.env.DATABASE_SSL === "true"
+      ? { rejectUnauthorized: true }
+      : undefined,
 });
 
 try {
   const migrationsDir = path.join(process.cwd(), "db", "migrations");
-  const files = (await fs.readdir(migrationsDir)).filter((file) => file.endsWith(".sql")).sort();
+  const files = (await fs.readdir(migrationsDir))
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
 
   await pool.query(`
     create table if not exists schema_migrations (
@@ -43,24 +36,34 @@ try {
     )
   `);
 
-  for (const file of files) {
-    const applied = await pool.query("select 1 from schema_migrations where id = $1", [file]);
-    if (applied.rowCount) {
-      console.log(`skip ${file}`);
-      continue;
-    }
+  const client = await pool.connect();
+  try {
+    for (const file of files) {
+      const applied = await pool.query(
+        "select 1 from schema_migrations where id = $1",
+        [file],
+      );
+      if (applied.rowCount) {
+        console.log(`skip ${file}`);
+        continue;
+      }
 
-    const sql = await fs.readFile(path.join(migrationsDir, file), "utf8");
-    await pool.query("begin");
-    try {
-      await pool.query(sql);
-      await pool.query("insert into schema_migrations (id) values ($1)", [file]);
-      await pool.query("commit");
-      console.log(`applied ${file}`);
-    } catch (error) {
-      await pool.query("rollback");
-      throw error;
+      const sql = await fs.readFile(path.join(migrationsDir, file), "utf8");
+      await client.query("begin");
+      try {
+        await client.query(sql);
+        await client.query("insert into schema_migrations (id) values ($1)", [
+          file,
+        ]);
+        await client.query("commit");
+        console.log(`applied ${file}`);
+      } catch (error) {
+        await client.query("rollback");
+        throw error;
+      }
     }
+  } finally {
+    client.release();
   }
 } finally {
   await pool.end();

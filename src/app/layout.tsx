@@ -13,11 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Orbita",
-  description: "A personal AI-powered digital presence operating system.",
+  title: "Content Forge",
+  description: "SIH 26154 Gen AI Platform for Automated Content Transformation (NTRO) — Next.js application. 7 outputs, vision/video, gov-advisory safety.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"

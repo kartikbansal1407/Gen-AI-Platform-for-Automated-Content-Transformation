@@ -1,6 +1,7 @@
+import { guardApi } from "@/lib/api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createAiDraft } from "@/lib/ai";
+import { createAiDraft } from "@/agent/ai";
 
 const contentSchema = z.object({
   platform: z.enum(["LinkedIn", "X", "Reddit"]),
@@ -20,16 +21,26 @@ const contentSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const denied = await guardApi(request, "transform");
+  if (denied) return denied;
   const body = await request.json().catch(() => null);
   const parsed = contentSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Orbita needs a platform, topic, audience, and objective to create a draft." },
+      {
+        error:
+          "Content Forge needs a platform, topic, audience, and objective to create a draft.",
+      },
       { status: 400 },
     );
   }
 
   const result = await createAiDraft(parsed.data);
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      Deprecation: "true",
+      Link: '</api/transform>; rel="successor-version"',
+    },
+  });
 }

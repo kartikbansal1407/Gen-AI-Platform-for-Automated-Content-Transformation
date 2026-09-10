@@ -1,10 +1,28 @@
-import { NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import {
+  isValidAccessCode,
+  createSession,
+  SESSION_COOKIE,
+} from "@/backend/auth";
 
-// Access code removed — login always succeeds for backwards compat.
-export async function POST() {
+const loginSchema = z.object({
+  accessCode: z.string().trim().min(1).max(200),
+});
+
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => null);
+  const parsed = loginSchema.safeParse(body);
+
+  if (!parsed.success || !isValidAccessCode(parsed.data.accessCode)) {
+    return NextResponse.json(
+      { error: "That access code did not work." },
+      { status: 401 },
+    );
+  }
+
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(SESSION_COOKIE, "demo-session", {
+  response.cookies.set(SESSION_COOKIE, createSession(), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
