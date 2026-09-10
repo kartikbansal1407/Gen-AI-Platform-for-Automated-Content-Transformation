@@ -43,19 +43,25 @@ Turn Orbita v2 into a polished, deployment-ready product with a fresh, coherent 
 - Clarified the product promise, privacy posture, operator-control model and demo-mode behavior.
 - Preserved the exact authentication endpoint and access-code behavior.
 
-## Next engineering pass
+### 6. Release engineering
+- Added `.github/workflows/quality.yml` as a quality gate for pushes to `main` and pull requests.
+- CI installs with `npm ci`, then runs lint, TypeScript checks, unit tests and a production build on Node 22.
+- Added `DEPLOYMENT.md` with runtime, environment, database migration, security, smoke-test, release and rollback guidance.
+
+## Current state
 
 - [x] Refresh application shell and navigation.
 - [x] Polish the primary transformation flow.
 - [x] Improve login and first-run experience.
+- [x] Add repository CI quality gate.
+- [x] Add deployment and release documentation.
 - [ ] Deep-polish dashboard cards and activity hierarchy.
 - [ ] Deep-polish artifact preview/review interaction states.
 - [ ] Tighten history, documents, analytics and settings views.
-- [ ] Add CI workflow for lint, typecheck, unit tests and production build.
-- [ ] Remove tracked OS junk files and normalize deployment documentation.
-- [ ] Verify build/test suite in an execution environment with repository network access.
-- [ ] Final production-readiness audit.
+- [ ] Remove tracked OS junk files.
+- [ ] Verify the new UI pass against lint/typecheck/tests/build in CI.
+- [ ] Final production-readiness audit after CI result.
 
 ## Validation note
 
-The previous implementation records a passing lint, TypeScript check, 54-test Vitest suite, production build and Chromium E2E run on 10 September 2026. This UI pass preserves the existing data/API flow, but the connected execution environment used for this pass cannot clone GitHub or run the repository locally because outbound repository network resolution is unavailable. The next CI run should be treated as the authoritative post-polish validation signal.
+The previous implementation records a passing lint, TypeScript check, 54-test Vitest suite, production build and Chromium E2E run on 10 September 2026. This UI pass preserves the existing data/API flow. The connected execution environment used for this pass cannot clone GitHub or run the repository locally because outbound repository network resolution is unavailable, so the newly added GitHub Quality Gate is the authoritative post-polish validation path.
