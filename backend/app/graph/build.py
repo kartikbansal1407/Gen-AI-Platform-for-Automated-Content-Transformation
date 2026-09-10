@@ -1,6 +1,6 @@
 """Graph assembly for the OmniForm AI workflow.
 
-    START -> router -> (Send fan-out) -> format_<output> -> collect -> END
+START -> router -> (Send fan-out) -> format_<output> -> collect -> END
 """
 
 from typing import Any

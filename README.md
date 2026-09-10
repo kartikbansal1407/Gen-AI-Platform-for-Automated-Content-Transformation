@@ -2,7 +2,7 @@
 
 SIH 26154 — Gen AI Platform for Automated Content Transformation (NTRO).
 
-Transform operator-provided text, documents, images, video, URLs and prompts into one or more communication artefacts. This repository runs **Next.js 16, React 19, TypeScript, Tailwind and optional PostgreSQL**. It is a Node application, with `npm` as its entry point.
+Transform operator-provided text, documents, images, video, URLs and prompts into one or more communication artefacts. This repository runs **Next.js 16, React 19, Tailwind, FastAPI and LangGraph**. Next.js provides the authenticated workspace; FastAPI routes sources through Groq/Ollama formatter agents and compiles downloadable files.
 
 ## Local development
 
@@ -14,6 +14,17 @@ cp docs/environment.example .env.local
 npm run dev
 # Open http://localhost:3000
 ```
+
+Start the OmniForm service in a second terminal (Python 3.11+):
+
+```bash
+python -m venv backend/.venv
+source backend/.venv/bin/activate
+pip install -r backend/requirements.txt
+cd backend && uvicorn main:app --reload --port 8000
+```
+
+Set `GROQ_API_KEY`, or set `OMNIFORM_LLM_PROVIDER=ollama` and run Ollama locally. Native compilation also requires Marp CLI, Typst, Mermaid CLI, FFmpeg and Chromium; the backend container installs all of them.
 
 With no provider keys or database, development runs in clearly labeled demo mode and saves jobs in browser storage. Set `AI_PROVIDER=demo` to force demo generation. Open `/login`. When no access code is configured locally, enter any non-empty code; otherwise use the configured code. Production requires a configured code and does not accept arbitrary codes.
 
@@ -86,6 +97,7 @@ src/agent/                Providers, ingestion, orchestration, seven output modu
 src/lib/                  Job/export/format logic, URL and request guards
 src/backend/              Auth, Postgres and transactional job persistence
 src/shared/               Existing shared types and demo data
+backend/                  FastAPI, LangGraph agents and compiler bridges
 scripts/migrate.mjs       Canonical migration runner
 db/migrations/           Additive SQL migrations 001–003
 e2e/                      Browser acceptance test and synthetic PDF fixture
@@ -106,6 +118,19 @@ The backend migration runner delegates to the root runner. The SQL mirror under 
 - `POST /api/assistant`: `{jobId, artefactType, instruction}` for stored jobs. Browser jobs additionally send original source, controls and previousArtefact. Legacy `{command}` is preserved.
 - `POST /api/content`: deprecated legacy drafting endpoint; use transform for new integrations.
 - `GET /api/health`: configuration booleans and database readiness; configuration does not imply a successful provider call.
+- `POST /api/omniform/transform`: authenticated proxy to the FastAPI LangGraph workflow.
+- FastAPI `POST /api/transform-file`: direct PDF ingestion plus multi-output transformation.
+- `GET /api/omniform/files/:jobId/:filename`: authenticated compiled-file download proxy.
+
+## Docker quick start
+
+```bash
+export CONTENT_FORGE_ACCESS_CODE='replace-with-a-strong-code'
+export GROQ_API_KEY='gsk_...'
+docker compose up --build
+```
+
+Open `http://localhost:3000`. FastAPI remains private on the Compose network while Next.js proxies generation and downloads.
 
 ## Limits and deployment
 

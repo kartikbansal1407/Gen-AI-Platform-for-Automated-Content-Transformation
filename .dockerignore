@@ -1,0 +1,11 @@
+.git
+.next
+node_modules
+.env*
+backend/.venv
+backend/outputs
+playwright-report
+test-results
+docs/*.webm
+docs/*.png
+docs/*.pdf

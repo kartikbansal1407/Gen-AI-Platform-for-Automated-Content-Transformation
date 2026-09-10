@@ -1,6 +1,6 @@
 # Orbita v2 Deployment Guide
 
-Orbita is a Next.js 16 application with optional PostgreSQL persistence and optional external generation/media providers. The application can run in demo mode without provider credentials, but a real production deployment should configure authentication and whichever providers are intended for use.
+Orbita is a two-service application: an authenticated Next.js 16 workspace and a private FastAPI/LangGraph generation service with native artifact compilers.
 
 ## Runtime
 
@@ -9,6 +9,7 @@ Orbita is a Next.js 16 application with optional PostgreSQL persistence and opti
 - `npm ci` for deterministic installs
 - `npm run build` for the production build
 - `npm start` to serve the compiled application
+- Docker with Compose for the complete compiler-enabled stack
 
 ## Required production configuration
 
@@ -17,6 +18,8 @@ At minimum, configure:
 ```env
 CONTENT_FORGE_ACCESS_CODE=<strong private access code>
 NEXT_PUBLIC_APP_URL=https://your-domain.example
+GROQ_API_KEY=<server-side Groq key>
+OMNIFORM_API_URL=http://backend:8000
 ```
 
 Do not deploy production with an empty access code.
@@ -56,6 +59,9 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+pip install -r backend/requirements-dev.txt
+ruff check backend
+PYTHONPATH=backend pytest backend/tests
 ```
 
 The repository also includes `.github/workflows/quality.yml`, which runs these checks for pull requests and pushes to `main`.
@@ -86,6 +92,11 @@ Depending on the enabled output types, Orbita can use optional transcription, na
 7. Sign in through `/login` and complete one source → generate → review → export smoke test.
 8. Confirm mobile navigation and dark/light appearance on the deployed URL.
 9. Verify provider-specific outputs only for providers actually configured in production.
+10. Generate and download one PPTX, PDF, MP4 and SVG from the OmniForm workspace.
+
+## Complete container deployment
+
+`docker compose up --build -d` builds both services. Only port 3000 is published; keep the backend private. The backend image pins Marp CLI, Mermaid CLI and Typst and installs FFmpeg, Chromium and Edge TTS. Keep the `omniform_outputs` volume while downloads are needed. For Railway, Render or another container platform, create two services from this repository using `Dockerfile` and `backend/Dockerfile`, then set the frontend's `OMNIFORM_API_URL` to the backend's private service URL.
 
 ## Rollback
 

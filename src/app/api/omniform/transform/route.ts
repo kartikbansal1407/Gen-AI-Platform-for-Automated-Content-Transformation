@@ -26,7 +26,8 @@ const requestSchema = z.object({
     .optional(),
 });
 
-const backendUrl = () => process.env.OMNIFORM_API_URL ?? "http://127.0.0.1:8000";
+const backendUrl = () =>
+  process.env.OMNIFORM_API_URL ?? "http://127.0.0.1:8000";
 
 export async function POST(request: Request) {
   const denied = await guardApi(request, "transform");

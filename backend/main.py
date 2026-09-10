@@ -1,4 +1,4 @@
-"""OmniForm AI — FastAPI entry point (Milestone 1).
+"""OmniForm AI — FastAPI generation and compilation service.
 
 Run from the ``backend`` directory:
 
@@ -6,18 +6,22 @@ Run from the ``backend`` directory:
 """
 
 import logging
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from io import BytesIO
+from pathlib import Path
+from typing import Annotated
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-
 from app.config import get_settings
 from app.graph.build import build_graph
 from app.outputs import OUTPUT_ORDER, OUTPUT_SPECS
 from app.pipeline import run_transformation
 from app.schemas import TransformRequest, TransformResponse
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pypdf import PdfReader
 
 logger = logging.getLogger("omniform")
 settings = get_settings()
@@ -43,6 +47,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _safe_output(job_id: str, filename: str) -> Path:
+    if (
+        not job_id
+        or not filename
+        or any(part in {"", ".", ".."} for part in (job_id, filename))
+    ):
+        raise HTTPException(status_code=404, detail="Artifact not found.")
+    root = settings.output_dir.resolve()
+    target = (root / job_id / filename).resolve()
+    if root not in target.parents or not target.is_file():
+        raise HTTPException(status_code=404, detail="Artifact not found.")
+    return target
 
 
 @app.get(f"{settings.api_prefix}/health")
@@ -83,5 +101,42 @@ async def transform(payload: TransformRequest, request: Request) -> TransformRes
         raise HTTPException(status_code=500, detail="Transformation failed.")
 
 
+@app.post(f"{settings.api_prefix}/transform-file", response_model=TransformResponse)
+async def transform_file(
+    request: Request,
+    file: Annotated[UploadFile, File()],
+    output_types: Annotated[str, Form()],
+    audience: Annotated[str, Form()] = "",
+    tone: Annotated[str, Form()] = "",
+) -> TransformResponse:
+    if file.content_type != "application/pdf" and not (
+        file.filename or ""
+    ).lower().endswith(".pdf"):
+        raise HTTPException(status_code=415, detail="Only PDF uploads are supported.")
+    data = await file.read(settings.max_upload_mb * 1024 * 1024 + 1)
+    if len(data) > settings.max_upload_mb * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="PDF exceeds the upload limit.")
+    try:
+        text = "\n".join(
+            page.extract_text() or "" for page in PdfReader(BytesIO(data)).pages
+        )
+        payload = TransformRequest(
+            text=text,
+            output_types=[
+                part.strip() for part in output_types.split(",") if part.strip()
+            ],
+            controls={"audience": audience or None, "tone": tone or None},
+        )
+    except Exception as error:  # noqa: BLE001 - normalize parser/validation failures
+        raise HTTPException(status_code=422, detail=f"Unable to read PDF: {error}")
+    return await run_transformation(payload, request.app.state.graph)
+
+
+@app.get(f"{settings.api_prefix}/files/{{job_id}}/{{filename}}")
+async def download_artifact(job_id: str, filename: str) -> FileResponse:
+    target = _safe_output(job_id, filename)
+    return FileResponse(target, filename=target.name)
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

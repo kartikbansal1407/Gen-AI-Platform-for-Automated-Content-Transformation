@@ -46,6 +46,7 @@ class Artifact(BaseModel):
     filename: str | None = None
     download_url: str | None = None
     compiled: bool = False
+    media_type: str = "text/plain"
 
 
 class TransformResponse(BaseModel):
