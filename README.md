@@ -7,7 +7,7 @@ This MVP is built as a responsive Next.js app for Vercel. It currently runs in d
 ## What Works
 
 - Secure-by-default project structure with no committed secrets.
-- Responsive authenticated app shell.
+- Responsive app shell.
 - Home command center with natural-language planning.
 - Create workspace for LinkedIn, X, and Reddit drafts.
 - Campaign dashboard.
@@ -17,7 +17,7 @@ This MVP is built as a responsive Next.js app for Vercel. It currently runs in d
 - Analytics dashboard with opportunity yield.
 - Settings with integration health and manual/assisted mode.
 - Browser-local demo persistence with export/reset controls.
-- API routes for assistant plans, content drafts, auth, and health.
+- API routes for assistant plans, content drafts, and health.
 - Unit tests for core Content Forge decision logic.
 
 ## Architecture
@@ -34,13 +34,12 @@ npm install
 npm run dev
 ```
 
-Open the local URL shown by Next.js. In local demo mode, any non-empty access code works. In production, set `CONTENT_FORGE_ACCESS_CODE`.
+Open the local URL shown by Next.js. Local demo mode needs no credentials.
 
 ## Environment Variables
 
 Copy `.env.example` to `.env.local` for local development. Do not commit `.env.local`.
 
-- `CONTENT_FORGE_ACCESS_CODE`: private app access code.
 - `DATABASE_URL`: managed Postgres connection string.
 - `AI_PROVIDER`: `gemini` or `openai`. Defaults to Gemini when `GEMINI_API_KEY` exists.
 - `GEMINI_API_KEY`: Gemini API key for AI generation.
@@ -62,10 +61,9 @@ Target platform: Vercel.
 
 Required before production deployment:
 
-1. Add `CONTENT_FORGE_ACCESS_CODE`.
-2. Add `DATABASE_URL` when persistent multi-session data is required.
-3. Add `GEMINI_API_KEY` or `OPENAI_API_KEY` when live AI generation is enabled.
-4. Connect GitHub repository to Vercel.
+1. Add `DATABASE_URL` when persistent multi-session data is required.
+2. Add `GEMINI_API_KEY` or `OPENAI_API_KEY` when live AI generation is enabled.
+3. Connect GitHub repository to Vercel.
 
 ## Testing
 
@@ -94,8 +92,8 @@ npm run build
 ## Roadmap
 
 1. Add Postgres schema and migrations.
-2. Replace demo auth with production auth provider or hardened single-user auth.
+2. Add a production auth provider or single-user lock if the deployment needs protection.
 3. Expand AI-backed strategist/writer/research abstractions with structured outputs.
 4. Persist campaigns, content, people, memory, analytics, and audit logs.
 5. Add official platform connectors where permitted.
-6. Add Playwright end-to-end tests for login, onboarding, content, campaign, network, memory, and analytics.
+6. Add Playwright end-to-end tests for onboarding, content, campaign, network, memory, and analytics.

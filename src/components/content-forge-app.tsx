@@ -96,7 +96,8 @@ export function ContentForgeApp() {
         if (cancelled) return;
         if (payload.mode === "database") setDataMode("database");
         if (payload.state) {
-          setTheme(payload.state.theme);
+          // UI is dark-only; always normalize remote theme so legacy "light" rows migrate forward.
+          setTheme("dark");
           setContents(payload.state.contents);
           setCampaigns(payload.state.campaigns);
           setPeople(payload.state.people);
@@ -151,21 +152,23 @@ export function ContentForgeApp() {
     return "Good evening.";
   }, []);
 
-  async function runCommand() {
+  async function runCommand(override?: string) {
+    const effectiveCommand = override ?? command;
+    if (override !== undefined) setCommand(override);
     setAiMode("thinking");
     try {
       const response = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify({ command: effectiveCommand }),
       });
       const payload = (await response.json()) as { mode?: AiMode; plan?: CommandPlan };
-      const nextPlan = payload.plan ?? createCommandPlan(command);
+      const nextPlan = payload.plan ?? createCommandPlan(effectiveCommand);
       setPlan(nextPlan);
       setAiMode(payload.mode === "gemini" || payload.mode === "openai" ? payload.mode : "demo");
       if (nextPlan.draft) setContents((items) => [nextPlan.draft!, ...items]);
     } catch {
-      const nextPlan = createCommandPlan(command);
+      const nextPlan = createCommandPlan(effectiveCommand);
       setPlan(nextPlan);
       setAiMode("demo");
       if (nextPlan.draft) setContents((items) => [nextPlan.draft!, ...items]);
@@ -246,7 +249,7 @@ export function ContentForgeApp() {
           <header className="sticky top-0 z-20 border-b border-subtle bg-main/95 px-4 py-3 backdrop-blur lg:px-8">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2 overflow-x-auto lg:hidden">
-                {sections.slice(0, 6).map(({ id }) => (
+                {sections.map(({ id }) => (
                   <button key={id} onClick={() => setActive(id)} className={`h-9 whitespace-nowrap rounded-md px-3 text-sm ${active === id ? "bg-nested text-primary" : "text-secondary"}`}>
                     {id}
                   </button>
@@ -278,6 +281,7 @@ export function ContentForgeApp() {
                   runCommand={runCommand}
                   plan={plan}
                   createContent={createContent}
+                  goCreate={() => setActive("Create")}
                   contents={contents}
                   campaigns={campaigns}
                 />
@@ -315,17 +319,14 @@ export function ContentForgeApp() {
 
 function Onboarding({ onComplete }: { onComplete: () => void }) {
   return (
-    <section className="mb-6 rounded-lg border border-subtle bg-card p-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <section className="mb-6 rounded-lg border border-subtle bg-card px-4 py-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-secondary">First-run onboarding</p>
-          <h2 className="mt-1 text-2xl font-semibold text-primary">Shape Content Forge around your goals</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-secondary">
-            Current defaults: AI, strategy, geopolitics, research, economics, thoughtful networking, assisted approvals, and no generic AI writing.
-          </p>
+          <h2 className="text-base font-semibold text-primary">Personalize your Content Forge</h2>
+          <p className="mt-0.5 text-sm text-secondary">Set your focus, audience, and content goals.</p>
         </div>
-        <button onClick={onComplete} className={`h-11 px-4 text-sm font-medium ${primaryButtonClass}`}>
-          Use these defaults
+        <button onClick={onComplete} className={`h-9 shrink-0 px-4 text-sm font-medium ${primaryButtonClass}`}>
+          Use defaults
         </button>
       </div>
     </section>
@@ -336,9 +337,10 @@ function HomeSection(props: {
   greeting: string;
   command: string;
   setCommand: (value: string) => void;
-  runCommand: () => void;
+  runCommand: (override?: string) => void;
   plan: CommandPlan | null;
   createContent: (platform: Platform) => void;
+  goCreate: () => void;
   contents: ContentItem[];
   campaigns: Campaign[];
 }) {
@@ -346,11 +348,12 @@ function HomeSection(props: {
     <div className="space-y-6">
       <section>
         <p className="text-lg text-secondary">{props.greeting}</p>
-        <h1 className="mt-1 text-4xl font-semibold tracking-normal text-primary">What are we doing today?</h1>
+        <h1 className="mt-1 text-4xl font-semibold tracking-normal text-primary">What do you want to accomplish today?</h1>
         <div className="mt-6 rounded-lg border border-subtle bg-card p-3 shadow-sm">
           <textarea
             value={props.command}
             onChange={(event) => props.setCommand(event.target.value)}
+            placeholder="Tell Content Forge what you're working on..."
             className="min-h-32 w-full resize-none bg-transparent p-3 text-lg leading-8 text-primary outline-none"
           />
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-subtle px-3 pt-3">
@@ -360,9 +363,9 @@ function HomeSection(props: {
               <span>Reddit</span>
               <span>Assisted mode</span>
             </div>
-            <button onClick={props.runCommand} className={`flex h-11 items-center gap-2 px-4 text-sm font-medium ${primaryButtonClass}`}>
+            <button onClick={() => props.runCommand()} className={`flex h-11 items-center gap-2 px-5 text-sm font-medium ${primaryButtonClass}`}>
               <Sparkles className="size-4" />
-              Ask Content Forge
+              Generate plan
             </button>
           </div>
         </div>
@@ -390,18 +393,30 @@ function HomeSection(props: {
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-3">
-        {(["LinkedIn", "X", "Reddit"] as Platform[]).map((platform) => (
-          <Panel key={platform} title={platform} icon={MessageSquareText}>
-            <div className="space-y-3 text-sm">
-              <StatusRow label="Post status" value={props.contents.find((item) => item.platform === platform)?.status ?? "No draft"} />
-              <StatusRow label="Recommended interactions" value={platform === "Reddit" ? "2 discussions" : "3 people"} />
-              <StatusRow label="Discovery queue" value={platform === "X" ? "5 conversations" : "4 targets"} />
-              <button onClick={() => props.createContent(platform)} className="mt-2 h-10 w-full rounded-md border border-subtle bg-nested text-sm text-secondary hover:border-strong hover:text-primary">
-                Create {platform} draft
-              </button>
-            </div>
-          </Panel>
-        ))}
+        {(["LinkedIn", "X", "Reddit"] as Platform[]).map((platform) => {
+          const draft = props.contents.find((item) => item.platform === platform);
+          const status = draft?.status ?? "No draft";
+          const interactions = platform === "Reddit" ? "2 discussions" : "3 people";
+          const queue = platform === "X" ? "5 conversations" : "4 targets";
+          return (
+            <Panel key={platform} title={platform} icon={MessageSquareText}>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`size-2 shrink-0 rounded-full ${draft ? "bg-primary" : "bg-muted"}`} />
+                  <span className="font-semibold text-primary">{status}</span>
+                </div>
+                <p className="text-secondary">{interactions} recommended interactions</p>
+                <p className="text-secondary">{queue} in discovery queue</p>
+                <button
+                  onClick={() => (draft ? props.goCreate() : props.createContent(platform))}
+                  className="mt-2 h-10 w-full rounded-md border border-subtle bg-nested text-sm text-secondary hover:border-strong hover:text-primary"
+                >
+                  {draft ? "Review" : `Create ${platform} draft`}
+                </button>
+              </div>
+            </Panel>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -672,7 +687,13 @@ function SettingsSection({
   );
 }
 
-function AssistantPanel({ command, setCommand, runCommand }: { command: string; setCommand: (value: string) => void; runCommand: () => void }) {
+const quickSuggestions = [
+  { label: "Turn this into a LinkedIn post", command: "Turn my idea into a LinkedIn post for young policy researchers." },
+  { label: "Find 3 angles", command: "Find 3 fresh angles on AI policy and public institutions." },
+  { label: "Make this more insightful", command: "Make my draft more insightful with one precise claim." },
+];
+
+function AssistantPanel({ command, setCommand, runCommand }: { command: string; setCommand: (value: string) => void; runCommand: (override?: string) => void }) {
   return (
     <aside className="border-l border-subtle bg-main px-4 py-6">
       <div className="sticky top-20">
@@ -683,11 +704,24 @@ function AssistantPanel({ command, setCommand, runCommand }: { command: string; 
         <textarea
           value={command}
           onChange={(event) => setCommand(event.target.value)}
+          placeholder="Ask anything about your plan..."
           className="min-h-44 w-full resize-none rounded-md border border-subtle bg-card p-3 text-sm leading-6 text-primary outline-none"
         />
-        <button onClick={runCommand} className={`mt-3 h-10 w-full text-sm font-medium ${primaryButtonClass}`}>
+        <button onClick={() => runCommand()} className={`mt-3 h-10 w-full text-sm font-medium ${primaryButtonClass}`}>
           Generate plan
         </button>
+        <p className="mt-5 text-sm text-secondary">Need help shaping your idea?</p>
+        <div className="mt-2 flex flex-col gap-2">
+          {quickSuggestions.map((suggestion) => (
+            <button
+              key={suggestion.label}
+              onClick={() => runCommand(suggestion.command)}
+              className="rounded-md border border-subtle bg-card px-3 py-2 text-left text-sm text-secondary hover:border-strong hover:text-primary"
+            >
+              {suggestion.label}
+            </button>
+          ))}
+        </div>
         <div className="mt-5 rounded-md border border-subtle bg-nested p-3 text-sm leading-6 text-secondary">
           Content Forge recommends, prepares, and explains. You approve genuine interactions.
         </div>
@@ -770,7 +804,8 @@ function readPersistedState(): PersistedState {
     const parsed = JSON.parse(saved) as Partial<PersistedState>;
 
     return {
-      theme: parsed.theme === "light" || parsed.theme === "dark" ? parsed.theme : fallback.theme,
+      // UI is dark-only; coerce legacy "light" saves so stored state never disagrees with rendering.
+      theme: "dark",
       contents: Array.isArray(parsed.contents) ? parsed.contents : fallback.contents,
       campaigns: Array.isArray(parsed.campaigns) ? parsed.campaigns : fallback.campaigns,
       people: Array.isArray(parsed.people) ? parsed.people : fallback.people,

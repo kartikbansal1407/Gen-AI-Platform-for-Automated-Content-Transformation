@@ -24,7 +24,8 @@ await loadEnvFile(path.join(process.cwd(), ".env.local"));
 await loadEnvFile(path.join(process.cwd(), ".env.production.local"));
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing. Pull Vercel env vars or set it locally first.");
+  console.error("DATABASE_URL is missing. Copy .env.example to .env.local and set it first.");
+  process.exit(1);
 }
 
 const pool = new pg.Pool({
@@ -62,6 +63,9 @@ try {
       throw error;
     }
   }
+} catch (error) {
+  console.error(`Migration failed: ${error instanceof Error ? error.message : error}`);
+  process.exitCode = 1;
 } finally {
   await pool.end();
 }

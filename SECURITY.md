@@ -6,7 +6,7 @@ Never commit API keys, tokens, passwords, `.env.local`, credential exports, or g
 
 ## Authentication
 
-The MVP includes a simple access-code flow for demo usage. Production should set `CONTENT_FORGE_ACCESS_CODE` immediately and later replace this with a robust auth provider or hardened single-user auth.
+The demo has no login gate: do not expose a deployment publicly without adding an auth provider or single-user lock first. Any future gate must keep genuine external actions explicit and user-approved.
 
 ## Platform Safety
 
