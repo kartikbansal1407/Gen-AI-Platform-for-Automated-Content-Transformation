@@ -5,3 +5,12 @@ node_modules/
 playwright-report/
 test-results/
 .DS_Store
+
+# OmniForm AI backend (Python)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+backend/outputs/

@@ -1,0 +1,16 @@
+# OmniForm AI — core backend (Milestone 1)
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.9
+pydantic-settings>=2.5
+langgraph>=0.6
+langchain-core>=0.3
+langchain-groq>=0.3
+httpx>=0.27
+
+# Milestone 3 — compilation bridges
+# edge-tts>=7.0
+# External binaries installed outside pip:
+#   marp-cli : npm i -g @marp-team/marp-cli   (Markdown -> .pptx)
+#   typst    : https://typst.app              (Typst -> .pdf)
+#   ffmpeg   : system package                 (edge-tts audio + cues -> .mp4)
