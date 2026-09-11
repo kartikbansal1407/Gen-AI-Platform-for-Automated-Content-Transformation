@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Orbita",
-  description: "A personal AI-powered digital presence operating system.",
+  title: "Content Forge",
+  description: "Gen-AI platform for automated content transformation.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

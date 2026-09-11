@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Tell Orbita what you want to accomplish in a sentence or two." },
+      { error: "Tell Content Forge what you want to accomplish in a sentence or two." },
       { status: 400 },
     );
   }

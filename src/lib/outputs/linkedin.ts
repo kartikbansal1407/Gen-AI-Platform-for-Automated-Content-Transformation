@@ -99,7 +99,8 @@ export async function generateLinkedIn(bundle: SourceBundle, controls: Transform
     warnings.push("GEMINI_API_KEY not set — LinkedIn uses deterministic, control-aware template");
   }
 
-  const body = `**Hook:** ${data.hook}\n\n${data.body}\n\n**Takeaway:** ${data.takeaway}\n\n${data.hashtags.join(" ")}`;
-  const title = data.hook.slice(0, 64).replace(/\s+/g, " ").trim() || `LinkedIn — for ${controls.audience}`;
+  const clean = (s: string) => s.replace(/\*\*/g, "").replace(/�/g, "").replace(/[^\x09\x0A\x0D\x20-\x7E\u0900-\u097F\u00A0-\u00FF\n]/g, " ").trim();
+  const body = `Hook: ${clean(data.hook)}\n\n${clean(data.body)}\n\nTakeaway: ${clean(data.takeaway)}\n\n${data.hashtags.join(" ")}`;
+  const title = clean(data.hook).slice(0, 64).replace(/\s+/g, " ").trim() || `LinkedIn — for ${controls.audience}`;
   return { type: "LinkedIn", title, body, metadata: { hook: data.hook, hashtags: data.hashtags, tone: controls.tone, style: controls.style, language: controls.language, audience: controls.audience }, warnings, confidence: geminiUsed ? 84 : 72 };
 }

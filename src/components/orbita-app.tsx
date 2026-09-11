@@ -62,9 +62,10 @@ type PersistedState = {
   onboarded: boolean;
 };
 
-const storageKey = "orbita-demo-state-v1";
+const storageKey = "content-forge-state-v1";
+const legacyStorageKey = "orbita-demo-state-v1";
 
-export function OrbitaApp() {
+export function ContentForgeApp() {
   const [active, setActive] = useState<Section>("Transform");
   const [theme, setTheme] = useState<"light" | "dark">(() => readPersistedState().theme);
   const [command, setCommand] = useState("I want to write something about India's AI policy today and reach young policy researchers.");
@@ -213,7 +214,7 @@ export function OrbitaApp() {
       {
         id: `onboarding-${Date.now()}`,
         category: "Onboarding",
-        value: "Wants Orbita to help with policy, AI, research, relationships, and opportunity discovery.",
+        value: "Wants Content Forge to help with policy, AI, research, relationships, and opportunity discovery.",
         editable: true,
       },
       ...items,
@@ -225,10 +226,10 @@ export function OrbitaApp() {
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 border-r border-current/10 px-4 py-5 lg:block">
           <div className="mb-8 flex items-center gap-3 px-2">
-            <div className="grid size-9 place-items-center rounded-md bg-[#f6f3ed] text-sm font-bold text-[#111111] shadow-sm ring-1 ring-white/10">O</div>
+            <div className="grid size-9 place-items-center rounded-md bg-[#f6f3ed] text-sm font-bold text-[#111111] shadow-sm ring-1 ring-white/10">CF</div>
             <div>
-              <div className="font-semibold">Orbita</div>
-              <div className="text-xs opacity-55">Presence OS</div>
+              <div className="font-semibold">Content Forge</div>
+              <div className="text-xs opacity-55">Content Transformation</div>
             </div>
           </div>
           <nav className="space-y-1">
@@ -269,7 +270,7 @@ export function OrbitaApp() {
                   {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
                 </button>
                 <button
-                  title="Ask Orbita"
+                  title="Ask Content Forge"
                   onClick={() => setAssistantOpen((value) => !value)}
                   className="grid size-9 place-items-center rounded-md border border-current/10"
                 >
@@ -332,7 +333,7 @@ function Onboarding({ onComplete }: { onComplete: () => void }) {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-medium opacity-70">First-run onboarding</p>
-          <h2 className="mt-1 text-2xl font-semibold">Shape Orbita around your goals</h2>
+          <h2 className="mt-1 text-2xl font-semibold">Shape Content Forge around your goals</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 opacity-70">
             Current defaults: AI, strategy, geopolitics, research, economics, thoughtful networking, assisted approvals, and no generic AI writing.
           </p>
@@ -375,14 +376,14 @@ function HomeSection(props: {
             </div>
             <button onClick={props.runCommand} className={`flex h-11 items-center gap-2 px-4 text-sm font-medium ${primaryButtonClass}`}>
               <Sparkles className="size-4" />
-              Ask Orbita
+              Ask Content Forge
             </button>
           </div>
         </div>
       </section>
 
       {props.plan ? (
-        <Panel title="Orbita plan" icon={Bot}>
+        <Panel title="Forge plan" icon={Bot}>
           <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
             <div>
               <div className="text-sm opacity-65">Topic</div>
@@ -653,7 +654,7 @@ function SettingsSection({
           <StatusRow label="LinkedIn" value="Manual/assisted mode" />
           <StatusRow label="X" value="Manual/assisted mode" />
           <StatusRow label="Reddit" value="Manual/assisted mode" />
-          <p className="mt-3 text-sm opacity-70">Official API connectors can be added later. Orbita will not bypass platform protections.</p>
+          <p className="mt-3 text-sm opacity-70">Official API connectors can be added later. Content Forge will not bypass platform protections.</p>
         </Panel>
         <Panel title="System health" icon={Activity}>
           <StatusRow label="AI provider" value={aiProviderLabel(aiMode)} />
@@ -665,7 +666,7 @@ function SettingsSection({
       <Panel title="Data controls" icon={Database}>
         <p className="text-sm leading-6 opacity-75">
           {dataMode === "database"
-            ? "Orbita is saving your working state to Postgres. Browser storage remains a local fallback."
+            ? "Content Forge is saving your working state to Postgres. Browser storage remains a local fallback."
             : "Demo mode stores your working state in this browser only. Production will move this to Postgres with export and deletion flows."}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -683,7 +684,7 @@ function AssistantPanel({ command, setCommand, runCommand }: { command: string; 
       <div className="sticky top-20">
         <div className="mb-4 flex items-center gap-2">
           <Bot className="size-5" />
-          <h2 className="font-semibold">Ask Orbita</h2>
+          <h2 className="font-semibold">Ask Content Forge</h2>
         </div>
         <textarea
           value={command}
@@ -694,7 +695,7 @@ function AssistantPanel({ command, setCommand, runCommand }: { command: string; 
           Generate plan
         </button>
         <div className="mt-5 rounded-md border border-current/10 p-3 text-sm leading-6 opacity-75">
-          Orbita recommends, prepares, and explains. You approve genuine interactions.
+          Content Forge recommends, prepares, and explains. You approve genuine interactions.
         </div>
       </div>
     </aside>
@@ -745,7 +746,7 @@ function exportDemoData(state: PersistedState) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `orbita-demo-export-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `content-forge-export-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -770,7 +771,7 @@ function readPersistedState(): PersistedState {
   if (typeof window === "undefined") return fallback;
 
   try {
-    const saved = window.localStorage.getItem(storageKey);
+    const saved = window.localStorage.getItem(storageKey) ?? window.localStorage.getItem(legacyStorageKey);
     if (!saved) return fallback;
     const parsed = JSON.parse(saved) as Partial<PersistedState>;
 

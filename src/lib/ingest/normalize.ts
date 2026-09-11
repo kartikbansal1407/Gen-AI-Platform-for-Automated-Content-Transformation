@@ -8,17 +8,32 @@ export function normalizeSourceBundle(input: {
   images?: { filename: string; mime: string }[];
   video?: { filename: string; mime: string } | null;
 }): SourceBundle {
-  // Strip obvious binary PDF garbage that slipped through (e.g. "%PDF-1.4 ... stream ...")
+  // Aggressively strip PDF binary garbage: drop any line that looks like
+  // "%PDF", "obj ... stream", "o !<#$jqxK1F", "G:\Projects..." leak, etc.
+  const isGarbageLine = (l: string) => {
+    const t = l.trim();
+    if (!t) return true;
+    if (t.length < 25) return false; // keep short legit lines, filter later
+    if (/%PDF|endobj|endstream|xref|trailer|FlateDecode|\/Length|\/Filter|<<\//.test(t)) return true;
+    if (/fake worker|Cannot find module|G:\\Projects|Gen-AI-Platform.*\.next|parse error/i.test(t)) return true;
+    // symbol-density check: lines like "o !<#$jqxK1F 1xGL |@T" have >35% symbols
+    const symbols = (t.match(/[^a-zA-Z0-9\s.,;:!?'"()\-–—%$]/g) || []).length;
+    if (symbols / Math.max(1, t.length) > 0.3) return true;
+    // must contain at least one English word (4+ letters)
+    if (!/[a-zA-Z]{4,}/.test(t)) return true;
+    return false;
+  };
   const sanitize = (s: string) => {
     if (!s) return s;
-    const hasPdfHeader = s.includes("%PDF") && s.includes("obj") && s.includes("stream");
-    const binaryRatio = (s.match(/[\x00-\x08\x0B\x0C\x0E-\x1F�]/g)?.length ?? 0) / Math.max(1, s.length);
-    if (hasPdfHeader || binaryRatio > 0.05) {
-      // keep only printable lines longer than 12 chars
-      const cleaned = s.split("\n").filter((l) => l.trim().length > 12 && !l.includes("%PDF") && !l.includes("<<") ).join("\n").slice(0, 15000);
-      return cleaned || `[Document contained only binary PDF data — no extractable text. Please use a text-based PDF.]`;
+    const lines = s.split("\n");
+    const kept = lines.filter((l) => !isGarbageLine(l));
+    // If we dropped >60% of content, the doc was mostly binary — keep readable remainder
+    const out = kept.join("\n").replace(/[^\x09\x0A\x0D\x20-\x7E\u0900-\u097F\u00A0-\u00FF\n]/g, " ").replace(/[ \t]+/g, " ").trim().slice(0, 15000);
+    if (!out || out.length < 60) {
+      const fallbackLines = lines.filter((l) => l.trim().length > 40 && /[a-zA-Z]{4,}/.test(l)).slice(0, 20).join("\n").slice(0, 3000);
+      return fallbackLines || `[Document contained only binary data — no extractable text. Please use a text-based PDF or paste text manually.]`;
     }
-    return s.slice(0, 15000);
+    return out;
   };
   const docs = (input.docs ?? []).map((d) => ({ ...d, text: sanitize(d.text) }));
   const combinedText = [

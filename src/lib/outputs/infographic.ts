@@ -33,7 +33,17 @@ function paletteFor(controls: TransformControls): string[] {
     Playful: ["#0F1B2A", "#FB7185", "#34D399", "#60A5FA", "#FEF3F2"],
     Conversational: ["#0F2A2E", "#14B8A6", "#2DD4BF", "#5EEAD4", "#ECFEFF"],
   };
-  return byTone[controls.tone] || byTone.Analytical;
+  const palette = [...(byTone[controls.tone] || byTone.Analytical)];
+  // Style shifts accent
+  if (controls.style === "Technical") palette[1] = "#38BDF8";
+  if (controls.style === "Narrative") palette[1] = "#FB7185";
+  if (controls.style === "Journalistic") palette[1] = "#F59E0B";
+  // Objective shifts secondary
+  if (controls.objective === "Alert") palette[2] = "#EF4444";
+  if (controls.objective === "Persuade") palette[2] = "#7C3AED";
+  // Detail adjusts background lightness
+  if (controls.detail === "Brief") palette[0] = palette[0] === "#0F1B2A" ? "#102A3A" : palette[0];
+  return palette;
 }
 
 function fallbackData(bundle: SourceBundle, controls: TransformControls): InfographicData {
@@ -70,37 +80,37 @@ function buildInfographicSvg(data: InfographicData): string {
   // subtle radial highlight
   const defs = `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${accent}" stop-opacity="0.18"/><stop offset="100%" stop-color="${bg}" stop-opacity="0"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/></filter></defs>`;
   const pointsSvg = data.points.map((p, i) => {
-    const y = 150 + i * 76;
+    const y = 150 + i * 78;
     const cardFill = i % 2 === 0 ? cardA : cardB;
     const accentColor = colors[2 + (i % 2)] || accent;
     return `
     <g filter="url(#shadow)">
-      <rect x="32" y="${y}" width="736" height="64" rx="14" fill="${cardFill}" stroke="#1E3A5E" stroke-width="1"/>
-      <rect x="32" y="${y}" width="736" height="64" rx="14" fill="url(#g)" opacity="0.5"/>
-      <g transform="translate(44, ${y + 16})">
-        <rect width="32" height="32" rx="8" fill="${accentColor}" opacity="0.18"/>
-        <g transform="translate(4,4) scale(0.85)">${iconSvg(p.label, accentColor)}</g>
+      <rect x="32" y="${y}" width="736" height="68" rx="14" fill="${cardFill}" stroke="#1E3A5E" stroke-width="1"/>
+      <rect x="32" y="${y}" width="736" height="68" rx="14" fill="url(#g)" opacity="0.5"/>
+      <g transform="translate(44, ${y + 18})">
+        <rect width="36" height="36" rx="9" fill="${accentColor}" opacity="0.18"/>
+        <g transform="translate(6,6) scale(0.92)">${iconSvg(p.label, accentColor)}</g>
       </g>
-      <text x="86" y="${y+28}" font-family="Inter, 'Segoe UI', sans-serif" font-size="12.5" font-weight="700" fill="#E6EEF9" letter-spacing="0.2">${escapeXml(p.label)}</text>
-      <text x="86" y="${y+46}" font-family="Inter, 'Segoe UI', sans-serif" font-size="11" fill="#9AB0CC">${escapeXml(p.value.slice(0, 82))}</text>
-      <text x="740" y="${y+32}" font-family="Inter, 'Segoe UI', sans-serif" font-size="10" font-weight="600" fill="${accent}" text-anchor="end" opacity="0.95">${escapeXml(p.note.slice(0, 22).toUpperCase())}</text>
+      <text x="92" y="${y+30}" font-family="Inter, 'Segoe UI', sans-serif" font-size="15" font-weight="750" fill="#E6EEF9" letter-spacing="0.2">${escapeXml(p.label)}</text>
+      <text x="92" y="${y+50}" font-family="Inter, 'Segoe UI', sans-serif" font-size="13.5" fill="#C2D6ED">${escapeXml(p.value.slice(0, 82))}</text>
+      <text x="740" y="${y+36}" font-family="Inter, 'Segoe UI', sans-serif" font-size="11" font-weight="650" fill="${accent}" text-anchor="end" opacity="0.95">${escapeXml(p.note.slice(0, 22).toUpperCase())}</text>
     </g>`;
   }).join("");
 
-  const h = 160 + data.points.length * 76 + 90;
+  const h = 160 + data.points.length * 78 + 96;
   return `<svg width="800" height="${h}" viewBox="0 0 800 ${h}" xmlns="http://www.w3.org/2000/svg" role="img">
   ${defs}
   <rect width="800" height="${h}" rx="22" fill="${bg}"/>
   <rect x="0" y="0" width="800" height="6" rx="3" fill="${accent}"/>
   <rect x="32" y="18" width="120" height="22" rx="11" fill="white" opacity="0.07" stroke="white" stroke-opacity="0.08"/>
   <text x="92" y="33" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="${accent}" text-anchor="middle" letter-spacing="1.4">CONTENT FORGE</text>
-  <text x="32" y="68" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">${escapeXml(data.headline.slice(0, 54))}</text>
-  <text x="32" y="96" font-family="Inter, sans-serif" font-size="12" fill="#9AB0CC">${escapeXml(data.subhead.slice(0, 96))}</text>
-  <line x1="32" y1="118" x2="768" y2="118" stroke="white" stroke-opacity="0.08" stroke-width="1"/>
+  <text x="32" y="68" font-family="Inter, sans-serif" font-size="32" font-weight="850" fill="#FFFFFF" letter-spacing="-0.5">${escapeXml(data.headline.slice(0, 54))}</text>
+  <text x="32" y="98" font-family="Inter, sans-serif" font-size="14" fill="#C2D6ED">${escapeXml(data.subhead.slice(0, 96))}</text>
+  <line x1="32" y1="120" x2="768" y2="120" stroke="white" stroke-opacity="0.08" stroke-width="1"/>
   ${pointsSvg}
   <rect x="32" y="${h - 58}" width="736" height="48" rx="12" fill="${accent}"/>
-  <text x="400" y="${h - 30}" font-family="Inter, sans-serif" font-size="13" font-weight="750" fill="${bg}" text-anchor="middle">Learn more — follow-up briefing</text>
-  <text x="400" y="${h - 14}" font-family="Inter, sans-serif" font-size="9" fill="${bg}" opacity="0.72" text-anchor="middle">${escapeXml(data.imagePrompt.slice(0, 78))}</text>
+  <text x="400" y="${h - 30}" font-family="Inter, sans-serif" font-size="15" font-weight="750" fill="${bg}" text-anchor="middle">Learn more — follow-up briefing</text>
+  <text x="400" y="${h - 14}" font-family="Inter, sans-serif" font-size="10" fill="${bg}" opacity="0.72" text-anchor="middle">${escapeXml(data.imagePrompt.slice(0, 78))}</text>
 </svg>`;
 }
 
@@ -144,7 +154,16 @@ export async function generateInfographic(bundle: SourceBundle, controls: Transf
   const svg = buildInfographicSvg(data);
   const dataUrl = svgToDataUrl(svg);
 
-  const body = `# Infographic — ${data.headline}\n\n**Subhead:** ${data.subhead}\n\n${data.points.map((p) => `- **${p.label}:** ${p.value} _(${p.note})_`).join("\n")}\n\n**Visual:** ${data.imagePrompt}\n\n![infographic](${dataUrl.slice(0, 60)}...) — download SVG/PNG below.`;
+  const cleanBody = (s: string) => s.replace(/\*\*/g, "").replace(/_/g, "").replace(/�/g, "").trim();
+  const body = `INFOGRAPHIC — ${cleanBody(data.headline)}
+
+Subhead: ${cleanBody(data.subhead)}
+
+${data.points.map((p) => `• ${cleanBody(p.label)}: ${cleanBody(p.value)} (${cleanBody(p.note)})`).join("\n")}
+
+Visual: ${cleanBody(data.imagePrompt)}
+
+Theme: ${controls.tone} / ${controls.style} / ${controls.objective} — palette adapts to options`;  void dataUrl;
 
   return {
     type: "Infographic",

@@ -45,9 +45,9 @@ export async function generateVideo(bundle: SourceBundle, controls: TransformCon
       const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
       const resp = await client.models.generateContent({
         model,
-        contents: `Source:\n${src.slice(0, 5000)}\n\nAudience: ${controls.audience}\nTone: ${controls.tone}\nLanguage: ${controls.language}\nDetail: ${controls.detail}\nObjective: ${controls.objective}\nStyle: ${controls.style}\n\nGenerate video JSON: script (30-90s read), 4-8 scenes {visual (B-roll prompt), duration 4-12s, transition, caption}, narration (voiceover text), srt (2-4 cues). Visuals must match tone/style. Language=${controls.language}, for ${controls.audience}.`,
+        contents: `Source:\n${src.slice(0, 5000)}\n\nAudience: ${controls.audience}\nTone: ${controls.tone}\nLanguage: ${controls.language}\nDetail: ${controls.detail}\nObjective: ${controls.objective}\nStyle: ${controls.style}\n\nGenerate video JSON: script (30-90s read), 4-8 scenes {visual (B-roll prompt), duration 4-12s, transition, caption}, narration (voiceover text), srt (2-4 cues). Visuals must match tone/style. Language=${controls.language}, for ${controls.audience}. Plain text only, no markdown.`,
         config: {
-          systemInstruction: `You are Content Forge video packager. Respect tone/language/detail/objective/style/audience. Write narration in ${controls.language}. Return JSON only.`,
+          systemInstruction: `You are Content Forge video packager. Respect tone/language/detail/objective/style/audience. Write narration in ${controls.language}. Plain text only, no markdown. Return JSON only.`,
           responseMimeType: "application/json",
           responseJsonSchema: schema,
         },
@@ -64,18 +64,44 @@ export async function generateVideo(bundle: SourceBundle, controls: TransformCon
     warnings.push("GEMINI_API_KEY not set — Video uses deterministic template");
   }
 
-  if (!process.env.ELEVENLABS_API_KEY) warnings.push("Audio requires ELEVENLABS_API_KEY — script/storyboard/SRT provided without mp3");
-  const audioNote = process.env.ELEVENLABS_API_KEY ? "ElevenLabs narration available — call /v1/text-to-speech" : "No audio — set ELEVENLABS_API_KEY for mp3";
+  if (!process.env.ELEVENLABS_API_KEY) warnings.push("Audio requires ELEVENLABS_API_KEY — preview uses browser speech, script/storyboard/SRT available");
+  const audioNote = process.env.ELEVENLABS_API_KEY ? "ElevenLabs narration available" : "Browser speech synthesis available — click Play with Audio";
 
-  const visualRecs = data.scenes.map((s) => `${s.visual} (${s.duration}, ${s.transition}) — ${s.caption}`).join("\n") + `\nTone visuals: ${controls.tone}, Style: ${controls.style}, Palette adapts to tone.`;
+  const body = `VIDEO PACKAGE — for ${controls.audience} | Tone: ${controls.tone} | Language: ${controls.language}
 
-  const body = `## Script (${controls.tone}, ${controls.language}, for ${controls.audience})\n${data.script}\n\n## Storyboard\n${data.scenes.map((s, i) => `${i + 1}. ${s.visual} — ${s.duration} — ${s.transition}\n   Caption: ${s.caption}`).join("\n")}\n\n## Narration\n${data.narration}\n\n## Subtitles (SRT)\n\`\`\`srt\n${data.srt}\n\`\`\`\n\n## Visual Recommendations\n${visualRecs}\n\n*Audio: ${audioNote}*`;
+SCRIPT
+${data.script}
+
+STORYBOARD
+${data.scenes.map((s, i) => `${i + 1}. ${s.visual} — ${s.duration} — ${s.transition} — Caption: ${s.caption}`).join("\n")}
+
+NARRATION
+${data.narration}
+
+SUBTITLES (SRT)
+${data.srt}
+
+VISUAL RECOMMENDATIONS
+${data.scenes.map((s) => `${s.visual} (${s.duration}, ${s.transition})`).join("\n")} — Tone: ${controls.tone}, Style: ${controls.style}
+
+Audio: ${audioNote} — Watch the preview player below, download SRT/script.
+`;
 
   return {
     type: "Video",
     title: `Video Package — for ${controls.audience}`,
     body,
-    metadata: { script: data.script, storyboard: data.scenes, srt: data.srt, narration: data.narration, audioUrl: process.env.ELEVENLABS_API_KEY ? "elevenlabs://pending" : undefined, visualRecs, tone: controls.tone, language: controls.language },
+    metadata: {
+      script: data.script,
+      storyboard: data.scenes,
+      srt: data.srt,
+      narration: data.narration,
+      audioUrl: process.env.ELEVENLABS_API_KEY ? "elevenlabs://pending" : undefined,
+      tone: controls.tone,
+      language: controls.language,
+      audience: controls.audience,
+      detail: controls.detail,
+    },
     warnings,
     confidence: geminiUsed ? 82 : 60,
   };

@@ -61,7 +61,8 @@ export async function generateTwitter(bundle: SourceBundle, controls: TransformC
     warnings.push("GEMINI_API_KEY not set — X uses deterministic thread");
   }
 
-  const body = tweets.join("\n\n");
-  const title = tweets[0]?.slice(0, 48) || `X — for ${controls.audience}`;
-  return { type: "Twitter", title, body, metadata: { tweets, count: tweets.length, tone: controls.tone, language: controls.language }, warnings, confidence: geminiUsed ? 83 : 70 };
+  const cleanTweets = tweets.map((t) => t.replace(/�/g, "").replace(/[^\x09\x0A\x0D\x20-\x7E\u0900-\u097F\u00A0-\u00FF\n]/g, " "));
+  const body = cleanTweets.join("\n\n");
+  const title = cleanTweets[0]?.slice(0, 48) || `X — for ${controls.audience}`;
+  return { type: "Twitter", title, body, metadata: { tweets: cleanTweets, count: cleanTweets.length, tone: controls.tone, language: controls.language }, warnings, confidence: geminiUsed ? 83 : 70 };
 }

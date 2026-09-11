@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-export const SESSION_COOKIE = "orbita_session";
+export const SESSION_COOKIE = "content_forge_session";
 
 // Access code removed — app is open. Keep cookie helpers for backwards compat.
 export async function isAuthenticated() {
